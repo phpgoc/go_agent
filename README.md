@@ -10,4 +10,7 @@
 
 - test 测试代码
 
-- proto grpc的proto文件
+- proto grpc的protoc文件
+
+# 描述
+- linux和windows 子目录文件里的函数声明不需要一致，因为子目录里只会被linux或者windows中的一个引用

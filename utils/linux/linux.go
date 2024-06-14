@@ -1,9 +1,8 @@
-// +build:linux
+//go:build linux
+
 package linux
 
 import (
-	"fmt"
-	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -33,13 +32,4 @@ func WaitUntil(cmd, expect string, interval, timeout uint) error {
 	}
 	return nil
 
-}
-
-var LogFileName = "/tmp/xxx/agent.log"
-var LogFile *os.File
-
-func WriteLogFile(log string, level string) (err error) {
-	// log to file
-	_, err = LogFile.WriteString(fmt.Sprintf("%s %s\n", level, log))
-	return err
 }

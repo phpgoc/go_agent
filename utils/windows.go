@@ -1,9 +1,9 @@
-//go:build linux
+//go:build windows
 
 package utils
 
 var logFileName = "/tmp/xxx/agent.log"
 
 func osInit() {
-	// do something linux only
+	// do something windows only
 }
