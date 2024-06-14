@@ -1,0 +1,2 @@
+- 当前目录的linux和windows文件里的声明必须一致，否则会出现编译错误
+- 子目录linux和windows文件里的函数声明不需要一致，因为子目录里只会被linux或者windows中的一个引用
