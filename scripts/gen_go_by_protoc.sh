@@ -22,7 +22,12 @@ while getopts "i:h" opt; do
         echo "input file if not set, will use all proto files in $protoc_dir"
         echo "output dir $(realpath "$cmd_dir"/../protoc_go/)/proto_go/"
         echo "use this cmd,you must install protoc and protoc-gen-go protoc-gen-go-grpc"
-        echo "in Ubuntu,it is easy to install by \"apt install protobuf-compiler protoc-gen-go protoc-gen-go-grpc\""
+        echo "in Ubuntu,it is easy to install by
+          sudo apt install protobuf-compiler protoc-gen-go protoc-gen-go-grpc"
+        echo "or use go:
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2
+          export PATH=\"\$PATH:\$(go env GOPATH)/bin\""
         exit 0
         ;;
     \?)
@@ -35,9 +40,9 @@ done
 set -e
 if [ -z "$input" ]; then
     #find basename
-    find_files=$(find "$proto_dir" -name "*.proto"  -exec basename {} \; | tr '\n' ' ')
+#    find_files=$(find "$proto_dir" -name "*.proto"  -exec basename {} \; | tr '\n' ' ')
 
-    protoc --go_out="$project_root" --go-grpc_out="$project_root" --proto_path="$proto_dir" "$find_files"
+    protoc --go_out="$project_root" --go-grpc_out="$project_root"  --proto_path="$proto_dir" "$(find "$proto_dir" -name "*.proto")"
     echo "generate all go code success"
 else
     protoc --go_out="$project_root" --go-grpc_out="$project_root" --proto_path="$proto_dir" "$input"

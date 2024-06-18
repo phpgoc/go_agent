@@ -21,7 +21,7 @@ package helloworld
 
 import (
 	"context"
-	pb "go-agent/proto_go"
+	pb "go-agent/agent_proto"
 	"log"
 )
 
@@ -31,7 +31,7 @@ type GreeterServer struct {
 }
 
 // SayHello implements helloworld.GreeterServer
-func (s *GreeterServer) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
+func (s *GreeterServer) SayHello(_ context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
 	log.Printf("Received: %v", in.GetName())
 	return &pb.HelloReply{Message: "Hello " + in.GetName()}, nil
 }

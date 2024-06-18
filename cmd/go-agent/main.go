@@ -8,7 +8,7 @@ import (
 	"log"
 	"net"
 
-	pb "go-agent/proto_go"
+	pb "go-agent/agent_proto"
 
 	"google.golang.org/grpc"
 )
@@ -22,7 +22,10 @@ func main() {
 
 	var err = utils.Init()
 	if err != nil {
-		utils.LogError(err.Error())
+		err := utils.LogError(err.Error())
+		if err != nil {
+			return
+		}
 		return
 	}
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
