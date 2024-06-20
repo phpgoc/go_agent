@@ -6,7 +6,8 @@ popd >/dev/null
 # 解析参数 -i -o
 input=""
 project_root=$(realpath "$cmd_dir"/../)
-proto_dir=$project_root/protos/
+simple_proto_path=protos/
+proto_dir=$project_root/$simple_proto_path
 
 
 while getopts "i:h" opt; do
@@ -40,11 +41,14 @@ done
 set -e
 if [ -z "$input" ]; then
     #find basename
-#    find_files=$(find "$proto_dir" -name "*.proto"  -exec basename {} \; | tr '\n' ' ')
-
-    protoc --go_out="$project_root" --go-grpc_out="$project_root"  --proto_path="$proto_dir" "$(find "$proto_dir" -name "*.proto")"
+    find_files=$(find "$proto_dir" -name "*.proto"  -exec basename {} \; | tr '\n' ' ')
+#    find_files=$(find "$proto_dir" -name "*.proto" -exec basename {} \; | awk -v P=$simple_proto_path '{print P$1}' | tr '\n' ' ')``
+#    echo $find_files
+#echo $proto_dir
+#echo $project_root
+    protoc --go_out="$project_root" --go-grpc_out="$project_root"  --proto_path="$proto_dir" $find_files
     echo "generate all go code success"
 else
-    protoc --go_out="$project_root" --go-grpc_out="$project_root" --proto_path="$proto_dir" "$input"
+    protoc --go_out="$project_root" --go-grpc_out="$project_root" --proto_path="$proto_dir" $input
     echo "generate go code by $input success"
 fi

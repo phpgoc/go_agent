@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"time"
 )
 
 var logFile *os.File
@@ -40,4 +41,20 @@ func LogWarn(log string) (err error) {
 
 func LogError(log string) (err error) {
 	return writeLogFile(log, "ERROR")
+}
+
+func ExtractFileStat(file string) (size uint64, accessTime, modifyTime string) {
+	fi, err := os.Stat(file)
+	if err != nil {
+		return
+	}
+	size = uint64(fi.Size())
+	accessTime = fi.ModTime().String()
+	modifyTime = fi.ModTime().String()
+	return
+}
+
+func FormatTime(timestamp int64) string {
+	tm := time.Unix(timestamp, 0)
+	return tm.Format("2006-01-02 15:04:05")
 }

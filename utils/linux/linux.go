@@ -10,10 +10,7 @@ import (
 
 func RunCmd(cmd string) (string, error) {
 	out, err := exec.Command("bash", "-c", cmd).Output()
-	if err != nil {
-		return "", err
-	}
-	return string(out), nil
+	return string(out), err
 }
 
 // timeout if 0 then wait forever

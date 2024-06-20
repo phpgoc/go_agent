@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+option go_package = "./agent_proto";
+
+package agent_proto;
+
+
+service GetApacheInfo {
+
+  rpc GetApacheInfo (GetApacheInfoRequest) returns (GetApacheInfoResponse) {}
+}
+
+message GetApacheInfoRequest {
+
+}
+
+message GetApacheInfoResponse {
+  string message = 1;
+  repeated SiteInfo list = 2;
+}
+
+message SiteInfo {
+  int32 listen = 1;
+  string documentRoot = 2;
+  string serverAlias = 3;
+  string serverName = 4;
+  string accessTime = 5;
+  repeated Log logs = 6;
+}
+
+message Log{
+  string type = 1;
+  uint64 size = 2;
+  string accessTime = 3;
+  string modifiedTime = 4;
+}
