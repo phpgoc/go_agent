@@ -101,7 +101,8 @@ func FindMatchedFiles(matchPattern string) (files []string, err error) {
 	return
 }
 
-func findInAndOut(key string, in map[string]string, out map[string]string) string {
+func findFromInAndOut(key string, in map[string]string, out map[string]string) string {
+	//优先out
 	if v, ok := out[key]; ok {
 		return v
 	}
@@ -121,28 +122,31 @@ func InterpretSourceExportToGoMap(content string, in map[string]string) (out map
 	//}
 	lines := strings.Split(content, "\n")
 	for _, line := range lines {
+		line = strings.Trim(line, "\t ")
+
 		//如果是注释跳过
 		if strings.HasPrefix(line, "#") {
 			continue
 		}
 		//必须开始于export
-		if !strings.HasPrefix(strings.Trim(line, "\t "), "export") {
+		if !strings.HasPrefix(line, "export") {
 			continue
 		}
 		if strings.Contains(line, "=") {
 			split := strings.Split(line, "=")
-			key := strings.Trim(split[0][6:], " ")
-			for_out := strings.Trim(split[1], " \"")
-			var true_out string
-			var canStopVariableChar = []int32{' ', '\t', '\n', ';', '/', '\\'}
-			if strings.Contains(for_out, "$") {
+			key := strings.Trim(split[0][6:], "\t ")
+			forOut := strings.Trim(split[1], " \"")
+			var trueOut string
+			//不一定穷举，发现bug，如果还有别的字符也可以中断变量输入再继续加入
+			var canStopVariableChar = []int32{' ', '\t', '\n', ';', '/', '\\', ',', '('}
+			if strings.Contains(forOut, "$") {
 				var v string
 				var hasDoubleQuote bool = false
 				var hasBigParentheses bool = false
 				var started = false
 				// find every variable
 
-				for _, c := range for_out {
+				for _, c := range forOut {
 					if c == '$' {
 						started = true
 					} else if v == "" && c == '"' {
@@ -155,22 +159,28 @@ func InterpretSourceExportToGoMap(content string, in map[string]string) (out map
 						//结束符号
 						//search in and out replace it in for
 						//都找不到也没问题，替换空字符串
-						true_out += findInAndOut(v, in, out)
+						trueOut += findFromInAndOut(v, in, out)
+						//非“，}的字符直接加入
+						if !hasDoubleQuote && !hasBigParentheses {
+							trueOut += string(c)
+						}
 						started = false
+						hasDoubleQuote = false
+						hasBigParentheses = false
 						v = ""
 					} else if started {
 						v += string(c)
 					} else {
-						true_out += string(c)
+						trueOut += string(c)
 					}
 				}
 				if v != "" {
-					true_out += findInAndOut(v, in, out)
+					trueOut += findFromInAndOut(v, in, out)
 				}
 			} else {
-				true_out = for_out
+				trueOut = forOut
 			}
-			out[key] = true_out
+			out[key] = trueOut
 		}
 	}
 	return

@@ -28,6 +28,30 @@ export a=$b
 			in:   map[string]string{"b": "221"},
 			want: map[string]string{"a": "221"},
 		},
+		{
+			name: "can deal with double quote",
+			content: `
+export a="$b"
+`,
+			in:   map[string]string{"b": "221"},
+			want: map[string]string{"a": "221"},
+		},
+		{
+			name: "can deal with big parentheses",
+			content: `
+export		a=${b}
+`,
+			in:   map[string]string{"b": "221"},
+			want: map[string]string{"a": "221"},
+		},
+		{
+			name: "can deal with /",
+			content: `
+export a=$b/$c
+`,
+			in:   map[string]string{"b": "221", "c": "222"},
+			want: map[string]string{"a": "221/222"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
