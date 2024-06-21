@@ -4,6 +4,7 @@ package get_apache_info
 
 import (
 	pb "go-agent/agent_proto"
+	"go-agent/utils"
 	"go-agent/utils/linux"
 	"path/filepath"
 	"strings"
@@ -15,37 +16,33 @@ func PlatformGetApacheInfo() (*pb.GetApacheInfoResponse, error) {
 	var err error
 	var apacheV string
 
-	//大V可能会报错，即使有apache，报错还不不影响apache正常运行，所用用小v判断是否存在，如果存在则用大V
+	//大V可能会返回错误，即使有apache，报错还不不影响apache正常运行，所用用小v判断是否存在，如果存在则用大V
 	if _, err = linux.RunCmd("apache2 -v"); err == nil {
 		apacheV, err = linux.RunCmd("apache2 -V")
+	} else if apacheV, err = linux.RunCmd("apache -v"); err == nil {
+		apacheV, _ = linux.RunCmd("apache -V")
+	} else if apacheV, err = linux.RunCmd("httpd -v"); err == nil {
+		apacheV, _ = linux.RunCmd("httpd -V")
 	} else {
-		if apacheV, err = linux.RunCmd("apache -v"); err != nil {
-			return nil, err
-		} else {
-			apacheV, _ = linux.RunCmd("apache -V")
-		}
+		response.Message = "can't find apache"
+		return &response, err
 	}
 	//println(apacheV)
 	//find HTTPD_ROOT and SERVER_CONFIG_FILE from apache -V
 	var httpRoot, serverConfig string
-	var splitSting []string
-
 	for _, line := range strings.Split(apacheV, "\n") {
 		if strings.Contains(line, "HTTPD_ROOT") {
-			if splitSting = strings.Split(line, "="); len(splitSting) > 1 {
-				httpRoot = strings.Trim(splitSting[1], "\"")
-				splitSting = []string{}
-				{
-				}
+			if httpRoot = utils.SplitStringAndGetIndexSafe(line, "=", 1); httpRoot != "" {
+				httpRoot = strings.Trim(httpRoot, "\"")
+
 			} else {
 				break
 			}
 		}
 		if strings.Contains(line, "SERVER_CONFIG_FILE") {
-			if splitSting = strings.Split(line, "="); len(splitSting) > 1 {
-				serverConfig = strings.Trim(splitSting[1], "\"")
+			if serverConfig = utils.SplitStringAndGetIndexSafe(line, "=", 1); serverConfig != "" {
+				serverConfig = strings.Trim(serverConfig, "\"")
 				//set empty string to split
-				splitSting = []string{}
 			} else {
 				break
 			}
@@ -57,7 +54,10 @@ func PlatformGetApacheInfo() (*pb.GetApacheInfoResponse, error) {
 	}
 	file := filepath.Join(httpRoot, serverConfig)
 	println(file)
-	recursiveInsertData(file, response)
+	err = recursiveInsertData(file, httpRoot, response)
+	if err != nil {
+		return nil, err
+	}
 
 	return &response, nil
 }
