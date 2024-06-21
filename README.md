@@ -1,6 +1,6 @@
 # 目录结构
 
-- scripts里的内容一般只能linux环境下使用，一般是脚手架工具
+- [scripts](scripts/README.md) 里的内容一般只能linux环境下使用，一般是脚手架工具
 
 - cmd go代码，可执行文件的入口
 
