@@ -61,3 +61,38 @@ export a=$b/$c
 		})
 	}
 }
+
+func TestReplaceStrUseEnvMapStrictWithBrace(t *testing.T) {
+	tests := []struct {
+		name    string
+		content string
+		envMap  map[string]string
+		want    string
+	}{
+		{
+			name:    "simple",
+			content: `${a}`,
+			envMap:  map[string]string{"a": "123"},
+			want:    "123",
+		},
+		{
+			name:    "double it",
+			content: `${a}${a}`,
+			envMap:  map[string]string{"a": "123"},
+			want:    "123123",
+		},
+		{
+			name:    "a and b",
+			content: `${a}${b}`,
+			envMap:  map[string]string{"a": "123", "b": "456"},
+			want:    "123456",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ReplaceStrUseEnvMapStrictWithBrace(tt.content, tt.envMap); got != tt.want {
+				t.Errorf("ReplaceStrUseEnvMapStrictWithBrace() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

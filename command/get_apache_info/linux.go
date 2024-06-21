@@ -32,7 +32,7 @@ func PlatformGetApacheInfo() (*pb.GetApacheInfoResponse, error) {
 	var httpRoot, serverConfig string
 	for _, line := range strings.Split(apacheV, "\n") {
 		if strings.Contains(line, "HTTPD_ROOT") {
-			if httpRoot = utils.SplitStringAndGetIndexSafe(line, "=", 1); httpRoot != "" {
+			if httpRoot = utils.SplitStringAndGetIndexSafely(line, "=", 1); httpRoot != "" {
 				httpRoot = strings.Trim(httpRoot, "\"")
 
 			} else {
@@ -40,7 +40,7 @@ func PlatformGetApacheInfo() (*pb.GetApacheInfoResponse, error) {
 			}
 		}
 		if strings.Contains(line, "SERVER_CONFIG_FILE") {
-			if serverConfig = utils.SplitStringAndGetIndexSafe(line, "=", 1); serverConfig != "" {
+			if serverConfig = utils.SplitStringAndGetIndexSafely(line, "=", 1); serverConfig != "" {
 				serverConfig = strings.Trim(serverConfig, "\"")
 				//set empty string to split
 			} else {
@@ -53,8 +53,10 @@ func PlatformGetApacheInfo() (*pb.GetApacheInfoResponse, error) {
 		return &response, err
 	}
 	file := filepath.Join(httpRoot, serverConfig)
-	println(file)
-	err = recursiveInsertData(file, httpRoot, response)
+	//env dict ,this file name by guess
+	envContent, _ := utils.ReadFile(filepath.Join(httpRoot, "envvars"))
+	envMap := utils.InterpretSourceExportToGoMap(envContent, map[string]string{})
+	err = recursiveInsertData(file, httpRoot, response, envMap)
 	if err != nil {
 		return nil, err
 	}

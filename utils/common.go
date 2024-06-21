@@ -72,7 +72,7 @@ func ReadFile(fileName string) (content string, err error) {
 	return
 }
 
-func SplitStringAndGetIndexSafe(s, sep string, index int) string {
+func SplitStringAndGetIndexSafely(s, sep string, index int) string {
 	splitString := strings.Split(s, sep)
 	if len(splitString) <= index {
 		return ""
@@ -141,8 +141,8 @@ func InterpretSourceExportToGoMap(content string, in map[string]string) (out map
 			var canStopVariableChar = []int32{' ', '\t', '\n', ';', '/', '\\', ',', '('}
 			if strings.Contains(forOut, "$") {
 				var v string
-				var hasDoubleQuote bool = false
-				var hasBigParentheses bool = false
+				var hasQuotationMark bool = false
+				var hasBrace bool = false
 				var started = false
 				// find every variable
 
@@ -150,23 +150,23 @@ func InterpretSourceExportToGoMap(content string, in map[string]string) (out map
 					if c == '$' {
 						started = true
 					} else if v == "" && c == '"' {
-						hasDoubleQuote = true
+						hasQuotationMark = true
 					} else if v == "" && c == '{' {
-						hasBigParentheses = true
-					} else if (hasDoubleQuote && c == '"') ||
-						(hasBigParentheses && c == '}') ||
-						(!hasDoubleQuote && !hasBigParentheses && slices.Contains(canStopVariableChar, c)) {
+						hasBrace = true
+					} else if (hasQuotationMark && c == '"') ||
+						(hasBrace && c == '}') ||
+						(!hasQuotationMark && !hasBrace && slices.Contains(canStopVariableChar, c)) {
 						//结束符号
 						//search in and out replace it in for
 						//都找不到也没问题，替换空字符串
 						trueOut += findFromInAndOut(v, in, out)
 						//非“，}的字符直接加入
-						if !hasDoubleQuote && !hasBigParentheses {
+						if !hasQuotationMark && !hasBrace {
 							trueOut += string(c)
 						}
 						started = false
-						hasDoubleQuote = false
-						hasBigParentheses = false
+						hasQuotationMark = false
+						hasBrace = false
 						v = ""
 					} else if started {
 						v += string(c)
@@ -184,4 +184,20 @@ func InterpretSourceExportToGoMap(content string, in map[string]string) (out map
 		}
 	}
 	return
+}
+
+func ReplaceStrUseEnvMapStrictWithBrace(content string, envMap map[string]string) string {
+	re := regexp.MustCompile(`\${(\w+)}`)
+
+	matches := re.FindAll([]byte(content), -1)
+	for _, match := range matches {
+		key := string(match[2 : len(match)-1])
+		if value, ok := envMap[key]; ok {
+			content = strings.ReplaceAll(content, string(match), value)
+		} else {
+			content = strings.ReplaceAll(content, string(match), "")
+		}
+	}
+
+	return content
 }

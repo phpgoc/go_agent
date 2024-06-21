@@ -12,11 +12,11 @@ type GetApacheInfoServer struct {
 	pb.UnimplementedGetApacheInfoServer
 }
 
-func (s *GetApacheInfoServer) GetApacheInfo(_ context.Context, in *pb.GetApacheInfoRequest) (*pb.GetApacheInfoResponse, error) {
+func (s *GetApacheInfoServer) GetApacheInfo(_ context.Context, _in *pb.GetApacheInfoRequest) (*pb.GetApacheInfoResponse, error) {
 	return PlatformGetApacheInfo()
 }
 
-func recursiveInsertData(fileName, rootPath string, response pb.GetApacheInfoResponse) (err error) {
+func recursiveInsertData(fileName, rootPath string, response pb.GetApacheInfoResponse, envMap map[string]string) (err error) {
 	var fileContent string
 	if fileContent, err = utils.ReadFile(fileName); err != nil {
 		response.Message = "can't read file " + fileName
@@ -34,7 +34,7 @@ func recursiveInsertData(fileName, rootPath string, response pb.GetApacheInfoRes
 		}
 		if strings.Contains(line, "Include") {
 			//if have no two element, continue
-			if option := utils.SplitStringAndGetIndexSafe(line, " ", 1); option == "" {
+			if option := utils.SplitStringAndGetIndexSafely(line, " ", 1); option == "" {
 				includeOptions = append(includeOptions, strings.Trim(option, "\""))
 			}
 		}
@@ -45,22 +45,22 @@ func recursiveInsertData(fileName, rootPath string, response pb.GetApacheInfoRes
 			response.List = append(response.List, &site)
 		}
 		if strings.Contains(line, "VirtualHost") {
-			listenString := strings.Trim(utils.SplitStringAndGetIndexSafe(line, " ", 1), "\"")
+			listenString := strings.Trim(utils.SplitStringAndGetIndexSafely(line, " ", 1), "\"")
 			parseInt, _ := strconv.ParseInt(listenString, 10, 32)
 			site.Listen = int32(parseInt)
 		}
 		if strings.Contains(line, "ServerName") {
-			site.ServerName = utils.SplitStringAndGetIndexSafe(line, " ", 1)
+			site.ServerName = utils.SplitStringAndGetIndexSafely(line, " ", 1)
 		}
 		if strings.Contains(line, "DocumentRoot") {
-			site.DocumentRoot = utils.SplitStringAndGetIndexSafe(line, " ", 1)
+			site.DocumentRoot = utils.SplitStringAndGetIndexSafely(line, " ", 1)
 		}
 		if strings.Contains(line, "ServerAlias") {
-			site.ServerAlias = utils.SplitStringAndGetIndexSafe(line, " ", 1)
+			site.ServerAlias = utils.SplitStringAndGetIndexSafely(line, " ", 1)
 		}
 		if strings.Contains(line, "ErrorLog") {
 			//如果有错，内容会全空
-			size, accessTime, modifyTime := utils.ExtractFileStat(utils.SplitStringAndGetIndexSafe(line, " ", 1))
+			size, accessTime, modifyTime := utils.ExtractFileStat(utils.SplitStringAndGetIndexSafely(line, " ", 1))
 			var log = pb.Log{
 				Type:         "错误",
 				Size:         size,
@@ -70,7 +70,7 @@ func recursiveInsertData(fileName, rootPath string, response pb.GetApacheInfoRes
 			site.Logs = append(site.Logs, &log)
 		}
 		if strings.Contains(line, "CustomLog") {
-			size, accessTime, modifyTime := utils.ExtractFileStat(utils.SplitStringAndGetIndexSafe(line, " ", 1))
+			size, accessTime, modifyTime := utils.ExtractFileStat(utils.SplitStringAndGetIndexSafely(line, " ", 1))
 			var log = pb.Log{
 				Type:         "访问",
 				Size:         size,
@@ -90,14 +90,14 @@ func recursiveInsertData(fileName, rootPath string, response pb.GetApacheInfoRes
 				return err
 			}
 			for _, file := range files {
-				err := recursiveInsertData(file, rootPath, response)
+				err := recursiveInsertData(file, rootPath, response, envMap)
 				if err != nil {
 					return err
 				}
 			}
 
 		} else {
-			err := recursiveInsertData(option, rootPath, response)
+			err := recursiveInsertData(option, rootPath, response, envMap)
 			if err != nil {
 				return err
 			}
