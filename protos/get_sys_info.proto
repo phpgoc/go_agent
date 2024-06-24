@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+option go_package = "./agent_proto";
+
+package agent_proto;
+
+
+service GetSysInfo {
+
+  rpc GetSysInfo (GetSysInfoRequest) returns (GetSysInfoResponse) {}
+}
+
+message GetSysInfoRequest {
+
+}
+
+message GetSysInfoResponse {
+  string message = 1;
+  string caption = 2;
+  string timezone = 3;
+  string sysVersion = 4;
+  string sysType = 5;
+  string sysArch = 6;
+  string hostname = 7;
+  string uptime = 8;
+  string bootTime = 9;
+  string lastShutdownTime = 10;
+  string cpu = 11;
+  string cpuProcessor = 12;
+  repeated string loadAverage = 13;
+  string memory = 14;
+  repeated string ips = 15;
+}

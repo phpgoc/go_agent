@@ -58,9 +58,12 @@ func ExtractFileStat(file string) (size uint64, accessTime, modifyTime string) {
 	return
 }
 
-func FormatTime(timestamp int64) string {
+func FormatTimeByTimestamp(timestamp int64) string {
 	tm := time.Unix(timestamp, 0)
 	return tm.Format("2006-01-02 15:04:05")
+}
+func FormatTime(timestamp time.Time) string {
+	return timestamp.Format("2006-01-02 15:04:05")
 }
 
 func ReadFile(fileName string) (content string, err error) {

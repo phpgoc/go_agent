@@ -4,7 +4,7 @@
 
 - cmd go代码，可执行文件的入口
 
-- command go代码，各个命令的实现
+- services go代码，各个命令的实现
 
 - utils go代码，一些工具函数
 

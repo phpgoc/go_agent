@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
-	"go-agent/command/get_apache_info"
+	"go-agent/services/get_sys_info"
 )
 
 func main() {
-	info, err := get_apache_info.PlatformGetApacheInfo()
+	//这个cmd没有实际意义，只是为了测试
+	server := get_sys_info.GetSysInfoServer{}
+	info, err := server.GetApacheInfo(nil, nil)
 	if err != nil {
 		print(err)
 		return
