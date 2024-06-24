@@ -74,6 +74,28 @@ func ReadFile(fileName string) (content string, err error) {
 	content = string(bytes)
 	return
 }
+func FormatDuration(uptime time.Duration) string {
+	var result string
+	for _, unit := range []struct {
+		duration time.Duration
+		unit     string
+	}{
+		{time.Hour * 24 * 365, "year"},
+		{time.Hour * 24 * 30, "month"},
+		{time.Hour * 24, "day"},
+		{time.Hour, "hour"},
+		{time.Minute, "minute"},
+		{time.Second, "second"},
+	} {
+
+		if uptime >= unit.duration {
+			count := uptime / unit.duration
+			result += fmt.Sprintf("%d %s ", count, unit.unit)
+			uptime -= count * unit.duration
+		}
+	}
+	return result
+}
 
 func SplitStringAndGetIndexSafely(s, sep string, index int) string {
 	splitString := strings.Split(s, sep)
@@ -203,4 +225,21 @@ func ReplaceStrUseEnvMapStrictWithBrace(content string, envMap map[string]string
 	}
 
 	return content
+}
+
+func FormatBytes(total uint64) string {
+	for _, unit := range []struct {
+		unit string
+		size uint64
+	}{
+		{"TB", 1024 * 1024 * 1024 * 1024},
+		{"GB", 1024 * 1024 * 1024},
+		{"MB", 1024 * 1024},
+		{"KB", 1024},
+	} {
+		if total >= unit.size {
+			return fmt.Sprintf("%.2f %s", float64(total)/float64(unit.size), unit.unit)
+		}
+	}
+	return fmt.Sprintf("%d B", total)
 }

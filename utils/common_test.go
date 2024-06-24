@@ -3,6 +3,7 @@ package utils
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 func TestInterpretSourceExportToGoMap(t *testing.T) {
@@ -98,6 +99,110 @@ func TestReplaceStrUseEnvMapStrictWithBrace(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := ReplaceStrUseEnvMapStrictWithBrace(tt.content, tt.envMap); got != tt.want {
 				t.Errorf("ReplaceStrUseEnvMapStrictWithBrace() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFormatDuration(t *testing.T) {
+	tests := []struct {
+		name   string
+		uptime time.Duration
+		want   string
+	}{
+		{
+			name:   "Years",
+			uptime: time.Hour * 24 * 365 * 2,
+			want:   "2 year ",
+		},
+		{
+			name:   "Months",
+			uptime: time.Hour * 24 * 30 * 3,
+			want:   "3 month ",
+		},
+		{
+			name:   "Days",
+			uptime: time.Hour * 24 * 4,
+			want:   "4 day ",
+		},
+		{
+			name:   "Hours",
+			uptime: time.Hour * 5,
+			want:   "5 hour ",
+		},
+		{
+			name:   "Minutes",
+			uptime: time.Minute * 6,
+			want:   "6 minute ",
+		},
+		{
+			name:   "Seconds",
+			uptime: time.Second * 7,
+			want:   "7 second ",
+		},
+		{
+			name:   "Mixed",
+			uptime: time.Hour*24*365 + time.Hour*24*30 + time.Hour*24 + time.Hour + time.Minute + time.Second,
+			want:   "1 year 1 month 1 day 1 hour 1 minute 1 second ",
+		},
+		{
+			name:   "Zero",
+			uptime: time.Duration(0),
+			want:   "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := FormatDuration(tt.uptime); got != tt.want {
+				t.Errorf("FormatDuration() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFormatBytes(t *testing.T) {
+	tests := []struct {
+		name  string
+		total uint64
+		want  string
+	}{
+		{
+			name:  "TB",
+			total: 1024 * 1024 * 1024 * 1024 * 2,
+			want:  "2.00 TB",
+		},
+		{
+			name:  "GB",
+			total: 1024 * 1024 * 1024 * 3,
+			want:  "3.00 GB",
+		},
+		{
+			name:  "MB",
+			total: 1024 * 1024 * 4,
+			want:  "4.00 MB",
+		},
+		{
+			name:  "KB",
+			total: 1024 * 5,
+			want:  "5.00 KB",
+		},
+		{
+			name:  "B",
+			total: 6,
+			want:  "6 B",
+		},
+		{
+			name:  "Zero",
+			total: 0,
+			want:  "0 B",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := FormatBytes(tt.total); got != tt.want {
+				t.Errorf("FormatBytes() = %v, want %v", got, tt.want)
 			}
 		})
 	}

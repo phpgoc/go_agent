@@ -24,10 +24,15 @@ message GetSysInfoResponse {
   string hostname = 7;
   string uptime = 8;
   string bootTime = 9;
-  string lastShutdownTime = 10;
   string cpu = 11;
   string cpuProcessor = 12;
-  repeated string loadAverage = 13;
+  LoadAverage loadAverage = 13;
   string memory = 14;
   repeated string ips = 15;
+}
+
+message LoadAverage {
+  string one = 1;
+  string five = 2;
+  string fifteen = 3;
 }

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"go-agent/services/get_apache_info"
+	"go-agent/services/get_sys_info"
 	"go-agent/services/helloworld"
 	"go-agent/utils"
 	"log"
@@ -36,6 +37,7 @@ func main() {
 	s := grpc.NewServer()
 	pb.RegisterGreeterServer(s, &helloworld.GreeterServer{})
 	pb.RegisterGetApacheInfoServer(s, &get_apache_info.GetApacheInfoServer{})
+	pb.RegisterGetSysInfoServer(s, &get_sys_info.GetSysInfoServer{})
 	log.Printf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
