@@ -77,5 +77,10 @@ func (s *GetSysInfoServer) GetSysInfo(_ context.Context, _ *pb.GetSysInfoRequest
 			res.Ips = append(res.Ips, ip)
 		}
 	}
+	//留着吧
+	err = utils.LogInfo(res.String())
+	if err != nil {
+		return nil, err
+	}
 	return &res, nil
 }
