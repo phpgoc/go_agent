@@ -12,6 +12,7 @@ import (
 
 // 在用windows版本后再开启条件编译
 func PlatformGetApacheInfo() (*pb.GetApacheInfoResponse, error) {
+
 	var response pb.GetApacheInfoResponse
 	var err error
 	var apacheV string
@@ -56,10 +57,11 @@ func PlatformGetApacheInfo() (*pb.GetApacheInfoResponse, error) {
 	//env dict ,this file name by guess
 	envContent, _ := utils.ReadFile(filepath.Join(httpRoot, "envvars"))
 	envMap := utils.InterpretSourceExportToGoMap(envContent, map[string]string{})
-	err = recursiveInsertData(file, httpRoot, response, envMap)
+	err = recursiveInsertData(file, httpRoot, &response, envMap)
 	if err != nil {
+		utils.LogError(err.Error())
 		return nil, err
 	}
-
+	utils.LogInfo(response.String())
 	return &response, nil
 }

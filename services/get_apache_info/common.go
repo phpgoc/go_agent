@@ -4,6 +4,7 @@ import (
 	"context"
 	pb "go-agent/agent_proto"
 	"go-agent/utils"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -12,11 +13,12 @@ type GetApacheInfoServer struct {
 	pb.UnimplementedGetApacheInfoServer
 }
 
-func (s *GetApacheInfoServer) GetApacheInfo(_ context.Context, _in *pb.GetApacheInfoRequest) (*pb.GetApacheInfoResponse, error) {
+func (s *GetApacheInfoServer) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*pb.GetApacheInfoResponse, error) {
+	utils.LogInfo("called ApacheInfo")
 	return PlatformGetApacheInfo()
 }
 
-func recursiveInsertData(fileName, rootPath string, response pb.GetApacheInfoResponse, envMap map[string]string) (err error) {
+func recursiveInsertData(fileName, rootPath string, response *pb.GetApacheInfoResponse, envMap map[string]string) (err error) {
 	var fileContent string
 	if fileContent, err = utils.ReadFile(fileName); err != nil {
 		response.Message = "can't read file " + fileName
@@ -32,22 +34,30 @@ func recursiveInsertData(fileName, rootPath string, response pb.GetApacheInfoRes
 		if strings.HasPrefix(line, "#") || line == "" {
 			continue
 		}
-		if strings.Contains(line, "Include") {
+		if strings.Contains(line, "IncludeOptional") {
 			//if have no two element, continue
-			if option := utils.SplitStringAndGetIndexSafely(line, " ", 1); option == "" {
+			if option := utils.SplitStringAndGetIndexSafely(line, " ", 1); option != "" {
+				//避免加载到loadmodule
+				if strings.HasSuffix(option, "load") {
+					continue
+				}
 				includeOptions = append(includeOptions, strings.Trim(option, "\""))
 			}
+			continue
 		}
 		if strings.Contains(line, "<VirtualHost") {
 			site = pb.SiteInfo{}
+			continue
 		}
 		if strings.Contains(line, "</VirtualHost>") {
 			response.List = append(response.List, &site)
+			continue
 		}
 		if strings.Contains(line, "VirtualHost") {
 			listenString := strings.Trim(utils.SplitStringAndGetIndexSafely(line, " ", 1), "\"")
 			parseInt, _ := strconv.ParseInt(listenString, 10, 32)
 			site.Listen = int32(parseInt)
+
 		}
 		if strings.Contains(line, "ServerName") {
 			site.ServerName = utils.SplitStringAndGetIndexSafely(line, " ", 1)
@@ -83,6 +93,7 @@ func recursiveInsertData(fileName, rootPath string, response pb.GetApacheInfoRes
 	// if includeOptions is has * ,find all match file
 
 	for _, option := range includeOptions {
+		option = filepath.Join(rootPath, option)
 		if strings.Contains(option, "*") {
 
 			files, err := utils.FindMatchedFiles(option)

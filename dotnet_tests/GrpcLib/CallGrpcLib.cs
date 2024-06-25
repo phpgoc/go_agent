@@ -18,6 +18,13 @@ namespace GrpcLib
             var reply = client.SayHello(new HelloRequest { Name = name });
             return reply.Message;
         }
+        
+        public GetApacheInfoResponse GetApacheInfo()
+        {
+            var client = new GetApacheInfo.GetApacheInfoClient(channel);
+            var reply = client.GetApacheInfo(new GetApacheInfoRequest { });
+            return reply;
+        }
 
         public GetSysInfoResponse GetSysInfo()
         {

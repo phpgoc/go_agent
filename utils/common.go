@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"slices"
 	"strings"
 	"time"
@@ -32,10 +33,8 @@ func Init() (err error) {
 		//q: windows 为什么没权利创建文件夹
 		err = os.MkdirAll(dirName, 0755)
 		if err != nil {
-			println(1)
 			return err
 		}
-		println(fullFileName)
 		logFile, err = os.OpenFile(fullFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 		// 适当的条件下设置writer = logFile,默认是os.Stdout
@@ -48,8 +47,11 @@ func Init() (err error) {
 func writeLogFile(log string, level string) {
 	// log to file
 	// write now
-	_, err := writer.WriteString(fmt.Sprintf("%s, %s, %s\n", level,
-		time.Now().Format("2006-01-02 15:04:05"), log))
+	_, filename, line, _ := runtime.Caller(2)
+	_, err := writer.WriteString(fmt.Sprintf("%s, %s, %s %d, %s\n", level,
+		time.Now().Format("2006-01-02 15:04:05"),
+		filename, line,
+		log))
 	if err != nil {
 		println(err.Error())
 	}
@@ -82,6 +84,7 @@ func FormatTimeByTimestamp(timestamp int64) string {
 	tm := time.Unix(timestamp, 0)
 	return tm.Format("2006-01-02 15:04:05")
 }
+
 func FormatTime(timestamp time.Time) string {
 	return timestamp.Format("2006-01-02 15:04:05")
 }
@@ -130,6 +133,7 @@ func FindMatchedFiles(matchPattern string) (files []string, err error) {
 	//split matchPattern
 	splitString := strings.Split(matchPattern, "/")
 	matchPattern = splitString[len(splitString)-1]
+	matchPattern = strings.ReplaceAll(matchPattern, "*", ".*")
 	pathName := strings.Join(splitString[:len(splitString)-1], "/")
 	dirEntries, err := os.ReadDir(pathName)
 	if err != nil {
@@ -157,14 +161,10 @@ func findFromInAndOut(key string, in map[string]string, out map[string]string) s
 	return ""
 }
 
-// 简单字符串判断，没有能力条件判断
+// InterpretSourceExportToGoMap 简单字符串判断，没有能力条件判断
 func InterpretSourceExportToGoMap(content string, in map[string]string) (out map[string]string) {
 	out = make(map[string]string)
 
-	//for key, value := range in {
-	//	re := regexp.MustCompile(key)
-	//	content = re.ReplaceAllString(content, value)
-	//}
 	lines := strings.Split(content, "\n")
 	for _, line := range lines {
 		line = strings.Trim(line, "\t ")

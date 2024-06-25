@@ -21,8 +21,9 @@ package helloworld
 
 import (
 	"context"
+	"fmt"
 	pb "go-agent/agent_proto"
-	"log"
+	"go-agent/utils"
 )
 
 // server is used to implement helloworld.GreeterServer.
@@ -32,6 +33,6 @@ type GreeterServer struct {
 
 // SayHello implements helloworld.GreeterServer
 func (s *GreeterServer) SayHello(_ context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
-	log.Printf("Received: %v", in.GetName())
+	utils.LogInfo(fmt.Sprintf("Received: %v", in.GetName()))
 	return &pb.HelloReply{Message: "Hello " + in.GetName()}, nil
 }
