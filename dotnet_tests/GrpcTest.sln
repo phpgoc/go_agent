@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcTest", "GrpcTest\GrpcTe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrpcLib", "GrpcLib\GrpcLib.csproj", "{A0F5207C-8353-400C-A768-60C7BB9FF223}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CallEverything", "CallEverything\CallEverything.csproj", "{30D734C1-1591-4E62-A5DA-8BF8C1D55182}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{A0F5207C-8353-400C-A768-60C7BB9FF223}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A0F5207C-8353-400C-A768-60C7BB9FF223}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A0F5207C-8353-400C-A768-60C7BB9FF223}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30D734C1-1591-4E62-A5DA-8BF8C1D55182}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30D734C1-1591-4E62-A5DA-8BF8C1D55182}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30D734C1-1591-4E62-A5DA-8BF8C1D55182}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30D734C1-1591-4E62-A5DA-8BF8C1D55182}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
