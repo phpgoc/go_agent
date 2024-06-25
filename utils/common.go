@@ -13,6 +13,9 @@ import (
 
 var logFile *os.File
 
+// default std out
+var writer = os.Stdout
+
 func Init() (err error) {
 	//use LogFileName get path
 	dirName := path.Dir(logFileName)
@@ -24,27 +27,34 @@ func Init() (err error) {
 
 	logFile, err = os.OpenFile(logFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
+	// 适当的条件下设置writer = logFile,默认是os.Stdout
+	//writer = logFile
+
 	osInit()
 
 	return err
 }
 
-func writeLogFile(log string, level string) (err error) {
+func writeLogFile(log string, level string) {
 	// log to file
-	_, err = logFile.WriteString(fmt.Sprintf("%s %s\n", level, log))
-	return err
+	// write now
+	_, err := writer.WriteString(fmt.Sprintf("%s, %s, %s\n", level,
+		time.Now().Format("2006-01-02 15:04:05"), log))
+	if err != nil {
+		println(err.Error())
+	}
 }
 
-func LogInfo(log string) (err error) {
-	return writeLogFile(log, "INFO")
+func LogInfo(log string) {
+	writeLogFile(log, "INFO")
 }
 
-func LogWarn(log string) (err error) {
-	return writeLogFile(log, "WARN")
+func LogWarn(log string) {
+	writeLogFile(log, "WARN")
 }
 
-func LogError(log string) (err error) {
-	return writeLogFile(log, "ERROR")
+func LogError(log string) {
+	writeLogFile(log, "ERROR")
 }
 
 func ExtractFileStat(file string) (size uint64, accessTime, modifyTime string) {

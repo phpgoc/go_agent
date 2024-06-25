@@ -24,10 +24,7 @@ func main() {
 
 	var err = utils.Init()
 	if err != nil {
-		err := utils.LogError(err.Error())
-		if err != nil {
-			return
-		}
+		log.Printf(err.Error())
 		return
 	}
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
@@ -38,7 +35,7 @@ func main() {
 	pb.RegisterGreeterServer(s, &helloworld.GreeterServer{})
 	pb.RegisterGetApacheInfoServer(s, &get_apache_info.GetApacheInfoServer{})
 	pb.RegisterGetSysInfoServer(s, &get_sys_info.GetSysInfoServer{})
-	log.Printf("server listening at %v", lis.Addr())
+	utils.LogInfo(fmt.Sprintf("server listening at %v", lis.Addr()))
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

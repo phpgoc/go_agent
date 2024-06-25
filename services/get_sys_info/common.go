@@ -78,9 +78,7 @@ func (s *GetSysInfoServer) GetSysInfo(_ context.Context, _ *pb.GetSysInfoRequest
 		}
 	}
 	//留着吧
-	err = utils.LogInfo(res.String())
-	if err != nil {
-		return nil, err
-	}
+	utils.LogInfo(res.String())
+
 	return &res, nil
 }
