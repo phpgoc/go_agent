@@ -2,8 +2,11 @@
 
 package utils
 
-var logFileName = "/tmp/xxx/agent.log"
+func osInitBefore() {
+	// do something linux only
+}
 
-func osInit() {
+func osInitAfter() {
+
 	// do something linux only
 }

@@ -29,7 +29,7 @@ func main() {
 	}
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		utils.LogError(fmt.Sprintf("failed to listen: %v", err))
 	}
 	s := grpc.NewServer()
 	pb.RegisterGreeterServer(s, &helloworld.GreeterServer{})
@@ -37,6 +37,6 @@ func main() {
 	pb.RegisterGetSysInfoServer(s, &get_sys_info.GetSysInfoServer{})
 	utils.LogInfo(fmt.Sprintf("server listening at %v", lis.Addr()))
 	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		utils.LogError(fmt.Sprintf("failed to serve: %v", err))
 	}
 }
