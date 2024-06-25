@@ -32,5 +32,12 @@ namespace GrpcLib
             var reply = client.GetSysInfo(new GetSysInfoRequest { });
             return reply;
         }
+        
+        public UserListResponse GetUserList()
+        {
+            var client = new GetUserList.GetUserListClient(channel);
+            var reply = client.GetUserList(new UserListRequest { });
+            return reply;
+        } 
     }
 }

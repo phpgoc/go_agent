@@ -6,6 +6,7 @@ import (
 	"go-agent/services/get_apache_info"
 	"go-agent/services/get_sys_info"
 	"go-agent/services/helloworld"
+	"go-agent/services/user_list"
 	"go-agent/utils"
 	"log"
 	"net"
@@ -35,6 +36,7 @@ func main() {
 	pb.RegisterGreeterServer(s, &helloworld.GreeterServer{})
 	pb.RegisterGetApacheInfoServer(s, &get_apache_info.GetApacheInfoServer{})
 	pb.RegisterGetSysInfoServer(s, &get_sys_info.GetSysInfoServer{})
+	pb.RegisterGetUserListServer(s, &user_list.GetUserListServer{})
 	utils.LogInfo(fmt.Sprintf("server listening at %v", lis.Addr()))
 	if err := s.Serve(lis); err != nil {
 		utils.LogError(fmt.Sprintf("failed to serve: %v", err))
