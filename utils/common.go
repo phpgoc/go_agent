@@ -48,7 +48,7 @@ func writeLogFile(log string, level string) {
 	// log to file
 	// write now
 	_, filename, line, _ := runtime.Caller(2)
-	_, err := writer.WriteString(fmt.Sprintf("%s, %s, %s %d, %s\n", level,
+	_, err := writer.WriteString(fmt.Sprintf("%s, %s\tfile:///%s:%d\t %s\n", level,
 		time.Now().Format("2006-01-02 15:04:05"),
 		filename, line,
 		log))
