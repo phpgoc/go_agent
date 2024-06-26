@@ -3,6 +3,8 @@ package get_sys_info
 import (
 	"context"
 	"github.com/elastic/go-sysinfo"
+	"github.com/shirou/gopsutil/v4/cpu"
+	"github.com/shirou/gopsutil/v4/load"
 	pb "go-agent/agent_proto"
 	"go-agent/utils"
 	"regexp"
@@ -62,10 +64,14 @@ func (s *GetSysInfoServer) GetSysInfo(_ context.Context, _ *pb.GetSysInfoRequest
 	res.Uptime = utils.FormatDuration(info.Uptime())
 	res.BootTime = utils.FormatTime(info.BootTime)
 
-	res.Cpu, res.CpuProcessor, res.LoadAverage, err = platformGetSysInfo()
-	if err != nil {
-		res.Message = err.Error()
-		return &res, err
+	cpuInfo, _ := cpu.Info()
+	res.Cpu = cpuInfo[0].ModelName
+	res.CpuProcessor = strconv.Itoa(int(cpuInfo[0].Cores))
+	loadAverage, _ := load.Avg()
+	res.LoadAverage = &pb.LoadAverage{
+		One:     strconv.FormatFloat(loadAverage.Load1, 'f', -1, 64),
+		Five:    strconv.FormatFloat(loadAverage.Load5, 'f', -1, 64),
+		Fifteen: strconv.FormatFloat(loadAverage.Load15, 'f', -1, 64),
 	}
 
 	res.Memory = utils.FormatBytes(memory.Total)
