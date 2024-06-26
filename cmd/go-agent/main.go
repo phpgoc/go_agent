@@ -31,6 +31,7 @@ func main() {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
 		utils.LogError(fmt.Sprintf("failed to listen: %v", err))
+		return
 	}
 	s := grpc.NewServer()
 	pb.RegisterGreeterServer(s, &helloworld.GreeterServer{})
