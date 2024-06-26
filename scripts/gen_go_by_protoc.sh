@@ -16,11 +16,12 @@ while getopts "i:h" opt; do
       input=$OPTARG
       ;;
     h)
-        echo "Usage: $0 -i input_file -o project_root_dir"
+        echo "Usage: $0 [-i input_file]"
         #输出换行
         echo "" 
         # shellcheck disable=SC2154
-        echo "input file if not set, will use all proto files in $protoc_dir"
+        echo " if not set input file, will use all proto files in ""$proto_dir"
+        echo "input use grep, hello will match helloworld.proto"
         echo "output dir $(realpath "$cmd_dir"/../protoc_go/)/proto_go/"
         exit 0
         ;;
@@ -37,8 +38,6 @@ if [ -z "$input" ]; then
     find_files=$(find "$proto_dir" -name "*.proto"  -exec basename {} \; | tr '\n' ' ')
 else
    find_files=$(find "$proto_dir" -name "*.proto"  -exec basename {} \; | grep "$input" |  tr '\n' ' ')
-#    protoc --go_out="$project_root" --go-grpc_out="$project_root" --proto_path="$proto_dir" $input
-
 fi
 echo "gen these: ""$find_files"
 docker run --rm -v "$project_root":/go/src -w /go/src $image_name \
