@@ -1,8 +1,12 @@
 package utils
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/transform"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -264,4 +268,15 @@ func FormatBytes(total uint64) string {
 		}
 	}
 	return fmt.Sprintf("%d B", total)
+}
+
+// GBKToUTF8 convert gbk to utf8 成熟的函数不做单元测试
+func GBKToUTF8(s []byte) ([]byte, error) {
+	reader := transform.NewReader(bytes.NewReader(s), simplifiedchinese.GBK.NewDecoder())
+	d, e := io.ReadAll(reader)
+	if e != nil {
+		return nil, e
+	}
+
+	return d, nil
 }
