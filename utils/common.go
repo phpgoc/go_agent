@@ -23,14 +23,16 @@ var logFile *os.File
 var writer = os.Stdout
 
 func Init() (err error) {
-	osInitBefore()
+	//必须是管理员权限，开发初期先注释
+	//err = osInitBefore()
+	//if err != nil {
+	//	return err
+	//}
 	defer osInitAfter()
 	//use LogFileName get path
 	if *useFileToLog {
 		fullFileName := filepath.Join(os.TempDir(), *logFileNameAtTempDir)
 		dirName := filepath.Dir(fullFileName)
-		//make dir
-		//q: windows 为什么没权利创建文件夹
 		err = os.MkdirAll(dirName, 0755)
 		if err != nil {
 			return err
