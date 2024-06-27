@@ -26,7 +26,8 @@ message GetSysInfoResponse {
   string uptime = 9;
   string bootTime = 10;
   LoadAverage loadAverage = 11;
-  string memory = 12;
+  MemoryStat virtualMemory = 12;
+  MemoryStat swapMemory = 13;
 }
 message PlatformModel{
   string platform = 1;
@@ -38,6 +39,13 @@ message CpuModel{
   string modelName = 1;
   int32 physicalCount = 2;
   int32 logicalCount = 3;
+}
+
+message MemoryStat{
+  string total = 1;
+  string free = 2;
+  string used = 3;
+  string available = 4;
 }
 
 message LoadAverage {

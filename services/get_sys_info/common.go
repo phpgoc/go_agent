@@ -5,6 +5,7 @@ import (
 	"github.com/shirou/gopsutil/v4/cpu"
 	"github.com/shirou/gopsutil/v4/host"
 	"github.com/shirou/gopsutil/v4/load"
+	"github.com/shirou/gopsutil/v4/mem"
 	pb "go-agent/agent_proto"
 	"go-agent/utils"
 	"strconv"
@@ -32,7 +33,7 @@ func (s *GetSysInfoServer) GetSysInfo(_ context.Context, _ *pb.GetSysInfoRequest
 		Version:  version,
 	}
 	_, offset := time.Now().Zone()
-	println(offset)
+
 	offset = offset / 3600
 	if offset >= 0 {
 		res.Timezone = "+" + strconv.Itoa(offset)
@@ -48,7 +49,6 @@ func (s *GetSysInfoServer) GetSysInfo(_ context.Context, _ *pb.GetSysInfoRequest
 	if err != nil {
 		utils.LogError(err.Error())
 	} else {
-		println(uptime)
 		res.Uptime = utils.FormatDuration(time.Duration(uptime) * time.Second)
 	}
 	////res.LastShutdownTime = utils.FormatTime(info.LastShutdownTime)
@@ -84,6 +84,28 @@ func (s *GetSysInfoServer) GetSysInfo(_ context.Context, _ *pb.GetSysInfoRequest
 			One:     loadAverage.Load1,
 			Five:    loadAverage.Load5,
 			Fifteen: loadAverage.Load15,
+		}
+	}
+	virtualMemory, err := mem.VirtualMemory()
+	if err != nil {
+		utils.LogError(err.Error())
+	} else {
+		res.VirtualMemory = &pb.MemoryStat{
+			Total:     utils.FormatBytes(virtualMemory.Total),
+			Available: utils.FormatBytes(virtualMemory.Available),
+			Used:      utils.FormatBytes(virtualMemory.Used),
+			Free:      utils.FormatBytes(virtualMemory.Free),
+		}
+	}
+	swapMemory, err := mem.SwapMemory()
+	if err != nil {
+		utils.LogError(err.Error())
+	} else {
+		res.SwapMemory = &pb.MemoryStat{
+			Total:     utils.FormatBytes(swapMemory.Total),
+			Used:      utils.FormatBytes(swapMemory.Used),
+			Free:      utils.FormatBytes(swapMemory.Free),
+			Available: "swap 没有available",
 		}
 	}
 
