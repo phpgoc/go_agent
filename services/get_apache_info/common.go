@@ -9,11 +9,11 @@ import (
 	"strings"
 )
 
-type GetApacheInfoServer struct {
+type Server struct {
 	pb.UnimplementedGetApacheInfoServer
 }
 
-func (s *GetApacheInfoServer) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*pb.GetApacheInfoResponse, error) {
+func (s *Server) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*pb.GetApacheInfoResponse, error) {
 	utils.LogInfo("called ApacheInfo")
 	var response pb.GetApacheInfoResponse
 	var err error

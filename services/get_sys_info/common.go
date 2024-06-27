@@ -12,11 +12,11 @@ import (
 	"time"
 )
 
-type GetSysInfoServer struct {
+type Server struct {
 	pb.UnimplementedGetSysInfoServer
 }
 
-func (s *GetSysInfoServer) GetSysInfo(_ context.Context, _ *pb.GetSysInfoRequest) (*pb.GetSysInfoResponse, error) {
+func (s *Server) GetSysInfo(_ context.Context, _ *pb.GetSysInfoRequest) (*pb.GetSysInfoResponse, error) {
 
 	hostInfo, err := host.Info()
 	var res pb.GetSysInfoResponse

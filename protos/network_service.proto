@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option go_package="./agent_proto";
+package agent_proto;
+
+service Network{
+    rpc GetNetworkInterface(NetworkInterfaceRequest) returns (NetworkInterfaceResponse) {}
+}
+
+message NetworkInterfaceRequest{
+}
+message NetworkInterfaceResponse{
+    string message = 1;
+    repeated NetworkInterface network_interfaces = 2;
+}
+message NetworkInterface{
+    string name = 1;
+    string mac = 2;
+    repeated string ipv4 = 3;
+    repeated string ipv6 = 4;
+    string flags = 7;
+}

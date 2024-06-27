@@ -54,4 +54,10 @@ public class GrpcCaller
         UserListResponse userList = _callGrpcLib.GetUserList();
         PrintJson(userList);
     }
+    public void CallGetNetworkInterface()
+    {
+        Console.WriteLine("call getNetworkInterface");
+        NetworkInterfaceResponse networkInterfaceList = _callGrpcLib.GetNetworkInterface();
+        PrintJson(networkInterfaceList);
+    }
 }

@@ -1,4 +1,5 @@
-﻿using AgentProto;
+﻿using System.Net.NetworkInformation;
+using AgentProto;
 using Grpc.Net.Client;
 
 namespace GrpcLib
@@ -39,5 +40,12 @@ namespace GrpcLib
             var reply = client.GetUserList(new UserListRequest { });
             return reply;
         } 
+        
+        public NetworkInterfaceResponse GetNetworkInterface()
+        {
+            var client = new Network.NetworkClient(channel);
+            var reply = client.GetNetworkInterface(new NetworkInterfaceRequest { });
+            return reply;
+        }
     }
 }

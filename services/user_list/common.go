@@ -6,11 +6,11 @@ import (
 	"go-agent/utils"
 )
 
-type GetUserListServer struct {
+type Server struct {
 	pb.UnimplementedGetUserListServer
 }
 
-func (s *GetUserListServer) GetUserList(_ context.Context, _ *pb.UserListRequest) (*pb.UserListResponse, error) {
+func (s *Server) GetUserList(_ context.Context, _ *pb.UserListRequest) (*pb.UserListResponse, error) {
 	utils.LogInfo("call GetUserList")
 	var response pb.UserListResponse
 	err := platformUserList(&response)

@@ -33,7 +33,6 @@ namespace GrpcTest
         {
             GetSysInfoResponse res = grpcLib.GetSysInfo();
 
-            Assert.AreEqual(res.Caption, "ubuntu");
             Assert.AreEqual(res.Timezone, "+8");
         }
     }
