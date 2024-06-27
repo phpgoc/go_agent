@@ -16,17 +16,22 @@ message GetSysInfoRequest {
 
 message GetSysInfoResponse {
   string message = 1;
-  string caption = 2;
+  PlatformModel platform = 2;
   CpuModel cpuModel = 3;
   string timezone = 4;
-  string sysVersion = 5;
-  string sysType = 6;
-  string sysArch = 7;
+  string kernelVersion = 5;
+  string os = 6;
+  string arch = 7;
   string hostname = 8;
   string uptime = 9;
   string bootTime = 10;
   LoadAverage loadAverage = 11;
   string memory = 12;
+}
+message PlatformModel{
+  string platform = 1;
+  string family = 2;
+  string version = 3;
 }
 
 message CpuModel{

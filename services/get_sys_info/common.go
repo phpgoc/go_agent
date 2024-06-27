@@ -2,12 +2,13 @@ package get_sys_info
 
 import (
 	"context"
-	"github.com/elastic/go-sysinfo"
 	"github.com/shirou/gopsutil/v4/cpu"
+	"github.com/shirou/gopsutil/v4/host"
 	"github.com/shirou/gopsutil/v4/load"
 	pb "go-agent/agent_proto"
 	"go-agent/utils"
 	"strconv"
+	"time"
 )
 
 type GetSysInfoServer struct {
@@ -15,36 +16,44 @@ type GetSysInfoServer struct {
 }
 
 func (s *GetSysInfoServer) GetSysInfo(_ context.Context, _ *pb.GetSysInfoRequest) (*pb.GetSysInfoResponse, error) {
-	host, err := sysinfo.Host()
+	//hostInfo, err := sysinfo.Host()
+	hostInfo, err := host.Info()
 	var res pb.GetSysInfoResponse
 	if err != nil {
-		res.Message = err.Error()
-		return &res, err
-	}
-	var info = host.Info()
-	memory, err := host.Memory()
-	if err != nil {
+		//这个找不到确实没法继续了
 		res.Message = err.Error()
 		return &res, err
 	}
 
-	//platform.platform() windows or linux
-	res.Caption = info.OS.Platform
-	offset := info.TimezoneOffsetSec / 3600
-	var offsetString = strconv.Itoa(offset)
+	platform, family, version, err := host.PlatformInformation()
+	res.Platform = &pb.PlatformModel{
+		Platform: platform,
+		Family:   family,
+		Version:  version,
+	}
+	_, offset := time.Now().Zone()
+	println(offset)
+	offset = offset / 3600
 	if offset >= 0 {
-		offsetString = "+" + offsetString
+		res.Timezone = "+" + strconv.Itoa(offset)
+	} else {
+		res.Timezone = strconv.Itoa(offset)
 	}
-
-	res.Timezone = offsetString
-	res.SysVersion = info.OS.Version
-	res.SysType = info.OS.Type
-	res.SysArch = info.Architecture
-	res.Hostname = info.Hostname
-	res.BootTime = utils.FormatTime(info.BootTime)
-	//res.LastShutdownTime = utils.FormatTime(info.LastShutdownTime)
-	res.Uptime = utils.FormatDuration(info.Uptime())
-	res.BootTime = utils.FormatTime(info.BootTime)
+	res.KernelVersion = hostInfo.KernelVersion
+	res.Os = hostInfo.OS
+	res.Arch = hostInfo.KernelArch
+	res.Hostname = hostInfo.Hostname
+	res.BootTime = utils.FormatTimeByTimestamp(int64(hostInfo.BootTime))
+	uptime, err := host.Uptime()
+	if err != nil {
+		utils.LogError(err.Error())
+	} else {
+		println(uptime)
+		res.Uptime = utils.FormatDuration(time.Duration(uptime) * time.Second)
+	}
+	////res.LastShutdownTime = utils.FormatTime(info.LastShutdownTime)
+	//res.Uptime = utils.FormatDuration(info.Uptime())
+	//res.BootTime = utils.FormatTime(info.BootTime)
 
 	cpuInfo, err := cpu.Info()
 	if err != nil {
@@ -77,8 +86,6 @@ func (s *GetSysInfoServer) GetSysInfo(_ context.Context, _ *pb.GetSysInfoRequest
 			Fifteen: loadAverage.Load15,
 		}
 	}
-
-	res.Memory = utils.FormatBytes(memory.Total)
 
 	//留着吧
 	utils.LogInfo(res.String())
