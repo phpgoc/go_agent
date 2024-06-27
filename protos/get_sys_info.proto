@@ -17,22 +17,26 @@ message GetSysInfoRequest {
 message GetSysInfoResponse {
   string message = 1;
   string caption = 2;
-  string timezone = 3;
-  string sysVersion = 4;
-  string sysType = 5;
-  string sysArch = 6;
-  string hostname = 7;
-  string uptime = 8;
-  string bootTime = 9;
-  string cpu = 11;
-  string cpuProcessor = 12;
-  LoadAverage loadAverage = 13;
-  string memory = 14;
-  repeated string ips = 15;
+  CpuModel cpuModel = 3;
+  string timezone = 4;
+  string sysVersion = 5;
+  string sysType = 6;
+  string sysArch = 7;
+  string hostname = 8;
+  string uptime = 9;
+  string bootTime = 10;
+  LoadAverage loadAverage = 11;
+  string memory = 12;
+}
+
+message CpuModel{
+  string modelName = 1;
+  int32 physicalCount = 2;
+  int32 logicalCount = 3;
 }
 
 message LoadAverage {
-  string one = 1;
-  string five = 2;
-  string fifteen = 3;
+  double one = 1;
+  double five = 2;
+  double fifteen = 3;
 }

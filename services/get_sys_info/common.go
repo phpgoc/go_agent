@@ -7,9 +7,7 @@ import (
 	"github.com/shirou/gopsutil/v4/load"
 	pb "go-agent/agent_proto"
 	"go-agent/utils"
-	"regexp"
 	"strconv"
-	"strings"
 )
 
 type GetSysInfoServer struct {
@@ -30,22 +28,6 @@ func (s *GetSysInfoServer) GetSysInfo(_ context.Context, _ *pb.GetSysInfoRequest
 		return &res, err
 	}
 
-	//var loadAverage = host.LoadAverage()
-	//Caption              string   `protobuf:"bytes,2,opt,name=caption,proto3" json:"caption,omitempty"`
-	//	Timezone             string   `protobuf:"bytes,3,opt,name=timezone,proto3" json:"timezone,omitempty"`
-	//	SysVersion           string   `protobuf:"bytes,4,opt,name=sysVersion,proto3" json:"sysVersion,omitempty"`
-	//	SysType              string   `protobuf:"bytes,5,opt,name=sysType,proto3" json:"sysType,omitempty"`
-	//	SysArch              string   `protobuf:"bytes,6,opt,name=sysArch,proto3" json:"sysArch,omitempty"`
-	//	Hostname             string   `protobuf:"bytes,7,opt,name=hostname,proto3" json:"hostname,omitempty"`
-	//	Uptime               string   `protobuf:"bytes,8,opt,name=uptime,proto3" json:"uptime,omitempty"`
-	//	BootTime             string   `protobuf:"bytes,9,opt,name=bootTime,proto3" json:"bootTime,omitempty"`
-	//	LastShutdownTime     string   `protobuf:"bytes,10,opt,name=lastShutdownTime,proto3" json:"lastShutdownTime,omitempty"`
-	//	Cpu                  string   `protobuf:"bytes,11,opt,name=cpu,proto3" json:"cpu,omitempty"`
-	//	CpuProcessor         string   `protobuf:"bytes,12,opt,name=cpuProcessor,proto3" json:"cpuProcessor,omitempty"`
-	//	LoadAverage          []string `protobuf:"bytes,13,rep,name=loadAverage,proto3" json:"loadAverage,omitempty"`
-	//	Memory               string   `protobuf:"bytes,14,opt,name=memory,proto3" json:"memory,omitempty"`
-	//	Ips
-
 	//platform.platform() windows or linux
 	res.Caption = info.OS.Platform
 	offset := info.TimezoneOffsetSec / 3600
@@ -64,25 +46,40 @@ func (s *GetSysInfoServer) GetSysInfo(_ context.Context, _ *pb.GetSysInfoRequest
 	res.Uptime = utils.FormatDuration(info.Uptime())
 	res.BootTime = utils.FormatTime(info.BootTime)
 
-	cpuInfo, _ := cpu.Info()
-	res.Cpu = cpuInfo[0].ModelName
-	res.CpuProcessor = strconv.Itoa(int(cpuInfo[0].Cores))
-	loadAverage, _ := load.Avg()
-	res.LoadAverage = &pb.LoadAverage{
-		One:     strconv.FormatFloat(loadAverage.Load1, 'f', -1, 64),
-		Five:    strconv.FormatFloat(loadAverage.Load5, 'f', -1, 64),
-		Fifteen: strconv.FormatFloat(loadAverage.Load15, 'f', -1, 64),
+	cpuInfo, err := cpu.Info()
+	if err != nil {
+		utils.LogError(err.Error())
+	} else if len(cpuInfo) == 0 {
+		utils.LogError("No CPU info found")
+	} else {
+		logicCount, err := cpu.Counts(true)
+		if err != nil {
+			utils.LogError(err.Error())
+		}
+		physicalCount, err := cpu.Counts(false)
+		if err != nil {
+			utils.LogError(err.Error())
+		}
+		res.CpuModel = &pb.CpuModel{
+			ModelName:     cpuInfo[0].ModelName,
+			PhysicalCount: int32(physicalCount),
+			LogicalCount:  int32(logicCount),
+		}
+	}
+
+	loadAverage, err := load.Avg()
+	if err != nil {
+		utils.LogError(err.Error())
+	} else {
+		res.LoadAverage = &pb.LoadAverage{
+			One:     loadAverage.Load1,
+			Five:    loadAverage.Load5,
+			Fifteen: loadAverage.Load15,
+		}
 	}
 
 	res.Memory = utils.FormatBytes(memory.Total)
 
-	//ip regex pattern
-	re, _ := regexp.Compile(`\d+\.\d+\.\d+\.\d+/\d{1,2}`)
-	for _, ip := range info.IPs {
-		if re.MatchString(ip) && !strings.HasPrefix(ip, "127.0.0.1") {
-			res.Ips = append(res.Ips, ip)
-		}
-	}
 	//留着吧
 	utils.LogInfo(res.String())
 
