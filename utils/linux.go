@@ -4,6 +4,7 @@ package utils
 
 import (
 	"errors"
+	"os/exec"
 	"os/user"
 )
 
@@ -22,4 +23,9 @@ func osInitBefore() error {
 func osInitAfter() {
 
 	// do something linux only
+}
+
+func RunCmd(cmd string) (string, error) {
+	out, err := exec.Command("bash", "-c", cmd).Output()
+	return string(out), err
 }

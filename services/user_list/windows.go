@@ -15,7 +15,7 @@ import (
 )
 
 func platformUserList(response *pb.UserListResponse) error {
-	output, err := windows.RunCmd("net user")
+	output, err := utils.RunCmd("net user")
 	if err != nil {
 		utils.LogError(err.Error())
 		return err

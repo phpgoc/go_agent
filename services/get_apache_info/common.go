@@ -15,7 +15,68 @@ type GetApacheInfoServer struct {
 
 func (s *GetApacheInfoServer) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*pb.GetApacheInfoResponse, error) {
 	utils.LogInfo("called ApacheInfo")
-	return PlatformGetApacheInfo()
+	var response pb.GetApacheInfoResponse
+	var err error
+	var apacheV string
+
+	//大V可能会返回错误，即使有apache，报错还不不影响apache正常运行，所用用小v判断是否存在，如果存在则用大V
+	if _, err = utils.RunCmd("apache2 -v"); err == nil {
+		apacheV, err = utils.RunCmd("apache2 -V")
+	} else if apacheV, err = utils.RunCmd("apache -v"); err == nil {
+		apacheV, _ = utils.RunCmd("apache -V")
+	} else if apacheV, err = utils.RunCmd("httpd -v"); err == nil {
+		apacheV, _ = utils.RunCmd("httpd -V")
+	} else {
+		response.Message = "can't find apache"
+		return &response, err
+	}
+	apacheCmd := utils.FindCommandFromPathAndProcessByMatchStringArray([]string{"apache2", "httpd", "apache"})
+	if apacheCmd == "" {
+		response.Message = "can't find apache"
+		utils.LogError(response.Message)
+		return &response, err
+	}
+
+	apacheV, err = utils.RunCmd(apacheCmd + " -V")
+	if err != nil {
+		response.Message = "apache compiler error or loss dependency"
+		utils.LogError(response.Message)
+		//不返回
+	}
+	var httpRoot, serverConfig string
+	for _, line := range strings.Split(apacheV, "\n") {
+		if strings.Contains(line, "HTTPD_ROOT") {
+			if httpRoot = utils.SplitStringAndGetIndexSafely(line, "=", 1); httpRoot != "" {
+				httpRoot = strings.Trim(httpRoot, "\"")
+
+			} else {
+				break
+			}
+		}
+		if strings.Contains(line, "SERVER_CONFIG_FILE") {
+			if serverConfig = utils.SplitStringAndGetIndexSafely(line, "=", 1); serverConfig != "" {
+				serverConfig = strings.Trim(serverConfig, "\"")
+				//set empty string to split
+			} else {
+				break
+			}
+		}
+	}
+	if httpRoot == "" || serverConfig == "" {
+		response.Message = "can't find HTTPD_ROOT or SERVER_CONFIG_FILE"
+		return &response, err
+	}
+	file := filepath.Join(httpRoot, serverConfig)
+	//env dict ,this file name by guess
+	envContent, _ := utils.ReadFile(filepath.Join(httpRoot, "envvars"))
+	envMap := utils.InterpretSourceExportToGoMap(envContent, map[string]string{})
+	err = recursiveInsertData(file, httpRoot, &response, envMap)
+	if err != nil {
+		utils.LogError(err.Error())
+		return nil, err
+	}
+	utils.LogInfo(response.String())
+	return &response, nil
 }
 
 func recursiveInsertData(fileName, rootPath string, response *pb.GetApacheInfoResponse, envMap map[string]string) (err error) {

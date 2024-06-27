@@ -5,6 +5,7 @@ package utils
 import (
 	"errors"
 	"go-agent/utils/windows"
+	"os/exec"
 )
 
 func osInitBefore() error {
@@ -22,4 +23,9 @@ func osInitBefore() error {
 func osInitAfter() {
 	// do something windows only
 
+}
+
+func RunCmd(cmd string) (string, error) {
+	out, err := exec.Command("cmd", "/C", cmd).Output()
+	return string(out), err
 }

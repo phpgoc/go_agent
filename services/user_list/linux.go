@@ -5,13 +5,12 @@ package user_list
 import (
 	pb "go-agent/agent_proto"
 	"go-agent/utils"
-	"go-agent/utils/linux"
 	"strconv"
 	"strings"
 )
 
 func platformUserList(response *pb.UserListResponse) error {
-	groupSource, err := linux.RunCmd("cat /etc/group")
+	groupSource, err := utils.RunCmd("cat /etc/group")
 	if err != nil {
 		utils.LogError(err.Error())
 		return err
@@ -25,7 +24,7 @@ func platformUserList(response *pb.UserListResponse) error {
 		groupInfo := strings.Split(line, ":")
 		groups[groupInfo[2]] = groupInfo[0]
 	}
-	usersSource, err := linux.RunCmd("cat /etc/passwd")
+	usersSource, err := utils.RunCmd("cat /etc/passwd")
 	if err != nil {
 		utils.LogError(err.Error())
 		return err
@@ -58,7 +57,7 @@ func platformUserList(response *pb.UserListResponse) error {
 		} else {
 			userInfo.UserType = "user"
 		}
-		lastLoginSource, _ := linux.RunCmd("lastlog -u " + arr[0])
+		lastLoginSource, _ := utils.RunCmd("lastlog -u " + arr[0])
 		//获取第二行的后半段
 		lastLoginStr := strings.Split(strings.Split(lastLoginSource, "\n")[1], arr[0])[1]
 		userInfo.LastLoginTime = strings.TrimSpace(lastLoginStr)

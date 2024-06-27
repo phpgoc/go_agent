@@ -3,6 +3,8 @@ package utils
 import (
 	"flag"
 	"fmt"
+	"github.com/shirou/gopsutil/v4/process"
+	"go-agent/runtime"
 	"os"
 	"path/filepath"
 )
@@ -36,6 +38,14 @@ func Init() (err error) {
 
 		// 适当的条件下设置writer = logFile,默认是os.Stdout
 		writer = logFile
+	}
+	//为go-agent/runtime/processes 录入
+	//runtime.Processes = make(map[int]*process.Process)
+	runtime.Processes, err = process.Processes()
+	if err != nil {
+		//不能接受这里有错
+		LogError(err.Error())
+		return err
 	}
 
 	return err
