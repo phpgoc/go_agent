@@ -3,7 +3,6 @@ module go-agent
 go 1.22.4
 
 require (
-	github.com/elastic/go-sysinfo v1.14.0
 	golang.org/x/sys v0.21.0
 	golang.org/x/text v0.16.0
 	google.golang.org/grpc v1.64.0
@@ -17,9 +16,6 @@ require (
 )
 
 require (
-	github.com/elastic/go-windows v1.0.1 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
-	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/shirou/gopsutil/v4 v4.24.5
 	github.com/tklauser/go-sysconf v0.3.14 // indirect
 	github.com/tklauser/numcpus v0.8.0 // indirect
@@ -27,5 +23,4 @@ require (
 	golang.org/x/net v0.26.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240610135401-a8a62080eff3 // indirect
 	google.golang.org/protobuf v1.34.2
-	howett.net/plist v1.0.1 // indirect
 )

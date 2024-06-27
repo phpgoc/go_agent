@@ -4,21 +4,16 @@ package utils
 
 import (
 	"errors"
-	"github.com/elastic/go-sysinfo"
+	"os/user"
 )
 
 func osInitBefore() error {
-	// do something linux only
-	//assert run it by root
-	process, err := sysinfo.Self()
+
+	currentUser, err := user.Current()
 	if err != nil {
 		return err
 	}
-	user, err := process.User()
-	if err != nil {
-		return err
-	}
-	if user.UID != "0" {
+	if currentUser.Uid != "0" {
 		return errors.New("run it by root")
 	}
 	return nil

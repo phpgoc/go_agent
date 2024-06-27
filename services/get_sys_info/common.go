@@ -17,21 +17,27 @@ type GetSysInfoServer struct {
 }
 
 func (s *GetSysInfoServer) GetSysInfo(_ context.Context, _ *pb.GetSysInfoRequest) (*pb.GetSysInfoResponse, error) {
-	//hostInfo, err := sysinfo.Host()
+
 	hostInfo, err := host.Info()
 	var res pb.GetSysInfoResponse
 	if err != nil {
 		//这个找不到确实没法继续了
 		res.Message = err.Error()
+		utils.LogError(err.Error())
 		return &res, err
 	}
 
 	platform, family, version, err := host.PlatformInformation()
-	res.Platform = &pb.PlatformModel{
-		Platform: platform,
-		Family:   family,
-		Version:  version,
+	if err != nil {
+		utils.LogError(err.Error())
+	} else {
+		res.Platform = &pb.PlatformModel{
+			Platform: platform,
+			Family:   family,
+			Version:  version,
+		}
 	}
+
 	_, offset := time.Now().Zone()
 
 	offset = offset / 3600
@@ -51,9 +57,6 @@ func (s *GetSysInfoServer) GetSysInfo(_ context.Context, _ *pb.GetSysInfoRequest
 	} else {
 		res.Uptime = utils.FormatDuration(time.Duration(uptime) * time.Second)
 	}
-	////res.LastShutdownTime = utils.FormatTime(info.LastShutdownTime)
-	//res.Uptime = utils.FormatDuration(info.Uptime())
-	//res.BootTime = utils.FormatTime(info.BootTime)
 
 	cpuInfo, err := cpu.Info()
 	if err != nil {
@@ -76,6 +79,7 @@ func (s *GetSysInfoServer) GetSysInfo(_ context.Context, _ *pb.GetSysInfoRequest
 		}
 	}
 
+	//windows 在启动初期会返回0
 	loadAverage, err := load.Avg()
 	if err != nil {
 		utils.LogError(err.Error())
