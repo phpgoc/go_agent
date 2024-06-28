@@ -2,7 +2,9 @@ package system
 
 import (
 	"context"
+	"fmt"
 	"github.com/shirou/gopsutil/v4/cpu"
+	"github.com/shirou/gopsutil/v4/disk"
 	"github.com/shirou/gopsutil/v4/host"
 	"github.com/shirou/gopsutil/v4/load"
 	"github.com/shirou/gopsutil/v4/mem"
@@ -105,8 +107,36 @@ func (s *Server) GetSysInfo(_ context.Context, _ *pb.GetSysInfoRequest) (*pb.Get
 			Total:     utils.FormatBytes(swapMemory.Total),
 			Used:      utils.FormatBytes(swapMemory.Used),
 			Free:      utils.FormatBytes(swapMemory.Free),
-			Available: "swap 没有available",
+			Available: "swap have no available",
 		}
+	}
+	//只需要 物理硬盘
+	//如果需要 cd-rom drives, USB keys 等, 使用true
+	disks, err := disk.Partitions(false)
+	if err != nil {
+		utils.LogError(err.Error())
+	} else {
+		utils.LogInfo(fmt.Sprintf("disks.len: %d ", len(disks)))
+		for _, d := range disks {
+			diskStat, err := disk.Usage(d.Mountpoint)
+			if err != nil {
+				utils.LogError(err.Error())
+			} else {
+				res.Disks = append(res.Disks, &pb.Disk{
+					Device:     d.Device,
+					MountPoint: d.Mountpoint,
+					FsType:     d.Fstype,
+					Usage: &pb.DiskUsage{
+						Total: utils.FormatBytes(diskStat.Total),
+						Used:  utils.FormatBytes(diskStat.Used),
+						Free:  utils.FormatBytes(diskStat.Free),
+						//除零会显示为NAN%
+						UsedPercent: fmt.Sprintf("%.3f%%", float64(diskStat.Used*100)/float64(diskStat.Total)),
+					},
+				})
+			}
+		}
+
 	}
 
 	//留着吧

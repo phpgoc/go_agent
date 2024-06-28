@@ -28,6 +28,7 @@ message GetSysInfoResponse {
   LoadAverage loadAverage = 11;
   MemoryStat virtualMemory = 12;
   MemoryStat swapMemory = 13;
+  repeated Disk disks = 14;
 }
 message PlatformModel{
   string platform = 1;
@@ -65,7 +66,7 @@ message UserListResponse {
 
 
 message UserInfo{
-  string userName  = 1;
+  string userName = 1;
   string userID = 2;
   string UserType = 3;
   string groupID = 4;
@@ -75,4 +76,18 @@ message UserInfo{
   string shell = 8;
   string lastLoginTime = 9;
   string status = 10;
+}
+
+message Disk{
+  string device = 1;
+  string mountPoint = 2;
+  string fsType = 3;
+  DiskUsage usage = 4;
+}
+
+message DiskUsage{
+  string total = 1;
+  string free = 2;
+  string used = 3;
+  string usedPercent = 4;
 }

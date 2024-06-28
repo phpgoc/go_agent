@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func writeLogFile(log string, level string) {
+func writeLogFile(level string, log string) {
 	// log to file
 	// write now
 	_, filename, line, _ := runtime.Caller(2)
@@ -28,16 +28,17 @@ func writeLogFile(log string, level string) {
 	}
 }
 
+// 如何接受变长
 func LogInfo(log string) {
-	writeLogFile(log, "INFO")
+	writeLogFile("INFO", log)
 }
 
 func LogWarn(log string) {
-	writeLogFile(log, "WARN")
+	writeLogFile("WARN", log)
 }
 
 func LogError(log string) {
-	writeLogFile(log, "ERROR")
+	writeLogFile("ERROR", log)
 }
 
 func ExtractFileStat(file string) (size uint64, accessTime, modifyTime string) {
