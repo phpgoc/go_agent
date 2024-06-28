@@ -8,8 +8,12 @@
 # 特定脚本说明
 
 - [build_go_env.sh](build_go_env.sh): docker构建go环境
+  - 如果go.mod文件有变化，最好重新执行一次
 
-- [gen_go_by_protoc.sh](gen_go_by_protoc.sh) 通过protos目录下的proto文件生成go代码，脚本还没有docker化，需要本地安装protobuf-compiler，protoc-gen-go，protoc-gen-go-grpc
+- [gen_go_by_protoc.sh](gen_go_by_protoc.sh) 
+   - 需要本机[build_go_env.sh](build_go_env.sh)执行成功过
+   - 生成proto文件对应的go代码
+   - 可以使用-i参数 执行只执行某些/个proto文件 使用grep匹配的 -i net 会匹配到network.proto
 
 - [build_dotnet_env.sh](build_dotnet_env.sh): docker构建dotnet环境
 
