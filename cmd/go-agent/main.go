@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go-agent/services/file"
 	"go-agent/services/get_apache_info"
 	"go-agent/services/get_sys_info"
 	"go-agent/services/helloworld"
@@ -40,6 +41,8 @@ func main() {
 	pb.RegisterGetSysInfoServer(s, &get_sys_info.Server{})
 	pb.RegisterGetUserListServer(s, &user_list.Server{})
 	pb.RegisterNetworkServer(s, &network.Server{})
+	pb.RegisterFileServer(s, &file.Server{})
+
 	utils.LogInfo(fmt.Sprintf("server listening at %v", lis.Addr()))
 	if err := s.Serve(lis); err != nil {
 		utils.LogError(fmt.Sprintf("failed to serve: %v", err))

@@ -13,6 +13,7 @@ type Server struct {
 }
 
 func (s *Server) GetNetworkInterface(_ context.Context, _ *pb.NetworkInterfaceRequest) (*pb.NetworkInterfaceResponse, error) {
+	utils.LogInfo("called GetNetworkInterface")
 	res := &pb.NetworkInterfaceResponse{}
 	interfaces, err := net.Interfaces()
 	if err != nil {

@@ -1,6 +1,8 @@
-﻿using System.Net.NetworkInformation;
+﻿
 using AgentProto;
+using Grpc.Core;
 using Grpc.Net.Client;
+using File = System.IO.File;
 
 namespace GrpcLib
 {
@@ -46,6 +48,29 @@ namespace GrpcLib
             var client = new Network.NetworkClient(channel);
             var reply = client.GetNetworkInterface(new NetworkInterfaceRequest { });
             return reply;
+        }
+        
+         public async Task  FileDownload(string remote , string local)
+         {
+            var client = new AgentProto.File.FileClient(channel);
+            using var call = client.DownloadFile(new DownloadFileRequest { Filename = remote });
+            try
+            {
+                await using   FileStream   writeStream = File.Create(local);
+                await foreach(var res in call.ResponseStream.ReadAllAsync())
+                {
+                    if(res.Chunk != null)
+                    {
+                        Console.WriteLine(res.Chunk.ToString());
+                        await writeStream.WriteAsync(res.Chunk.Memory);
+                    }
+                }
+                writeStream.Close();
+            }
+            catch (System.ArgumentException e)
+            {
+                Console.WriteLine($"An error occurred: {e.Message}");
+            }
         }
     }
 }

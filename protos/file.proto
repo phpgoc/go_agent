@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "./agent_proto";
+
+package agent_proto;
+
+service File {
+    rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileResponse) {}
+}
+
+message DownloadFileRequest {
+    string filename = 1;
+}
+
+message DownloadFileResponse {
+    bytes chunk = 1;
+}

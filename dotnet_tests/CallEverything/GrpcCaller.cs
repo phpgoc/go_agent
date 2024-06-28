@@ -60,4 +60,10 @@ public class GrpcCaller
         NetworkInterfaceResponse networkInterfaceList = _callGrpcLib.GetNetworkInterface();
         PrintJson(networkInterfaceList);
     }
+    
+    public async Task CallFileDownload(string remote, string local)
+    {
+        Console.WriteLine("call fileDownload");
+        await _callGrpcLib.FileDownload(remote, local);
+    }
 }
