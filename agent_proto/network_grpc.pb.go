@@ -19,7 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	NetworkService_GetNetworkInterface_FullMethodName = "/agent_proto.NetworkService/GetNetworkInterface"
+	NetworkService_GetNetworkInterface_FullMethodName  = "/agent_proto.NetworkService/GetNetworkInterface"
+	NetworkService_GetAllNetworkConnect_FullMethodName = "/agent_proto.NetworkService/GetAllNetworkConnect"
 )
 
 // NetworkServiceClient is the client API for NetworkService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type NetworkServiceClient interface {
 	GetNetworkInterface(ctx context.Context, in *NetworkInterfaceRequest, opts ...grpc.CallOption) (*NetworkInterfaceResponse, error)
+	GetAllNetworkConnect(ctx context.Context, in *GetAllNetworkConnectRequest, opts ...grpc.CallOption) (*GetAllNetworkConnectResponse, error)
 }
 
 type networkServiceClient struct {
@@ -47,11 +49,22 @@ func (c *networkServiceClient) GetNetworkInterface(ctx context.Context, in *Netw
 	return out, nil
 }
 
+func (c *networkServiceClient) GetAllNetworkConnect(ctx context.Context, in *GetAllNetworkConnectRequest, opts ...grpc.CallOption) (*GetAllNetworkConnectResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAllNetworkConnectResponse)
+	err := c.cc.Invoke(ctx, NetworkService_GetAllNetworkConnect_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NetworkServiceServer is the server API for NetworkService service.
 // All implementations must embed UnimplementedNetworkServiceServer
 // for forward compatibility
 type NetworkServiceServer interface {
 	GetNetworkInterface(context.Context, *NetworkInterfaceRequest) (*NetworkInterfaceResponse, error)
+	GetAllNetworkConnect(context.Context, *GetAllNetworkConnectRequest) (*GetAllNetworkConnectResponse, error)
 	mustEmbedUnimplementedNetworkServiceServer()
 }
 
@@ -61,6 +74,9 @@ type UnimplementedNetworkServiceServer struct {
 
 func (UnimplementedNetworkServiceServer) GetNetworkInterface(context.Context, *NetworkInterfaceRequest) (*NetworkInterfaceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetNetworkInterface not implemented")
+}
+func (UnimplementedNetworkServiceServer) GetAllNetworkConnect(context.Context, *GetAllNetworkConnectRequest) (*GetAllNetworkConnectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAllNetworkConnect not implemented")
 }
 func (UnimplementedNetworkServiceServer) mustEmbedUnimplementedNetworkServiceServer() {}
 
@@ -93,6 +109,24 @@ func _NetworkService_GetNetworkInterface_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NetworkService_GetAllNetworkConnect_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAllNetworkConnectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NetworkServiceServer).GetAllNetworkConnect(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NetworkService_GetAllNetworkConnect_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NetworkServiceServer).GetAllNetworkConnect(ctx, req.(*GetAllNetworkConnectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // NetworkService_ServiceDesc is the grpc.ServiceDesc for NetworkService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -103,6 +137,10 @@ var NetworkService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetNetworkInterface",
 			Handler:    _NetworkService_GetNetworkInterface_Handler,
+		},
+		{
+			MethodName: "GetAllNetworkConnect",
+			Handler:    _NetworkService_GetAllNetworkConnect_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

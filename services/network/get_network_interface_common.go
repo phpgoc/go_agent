@@ -8,10 +8,6 @@ import (
 	"strings"
 )
 
-type Server struct {
-	pb.UnimplementedNetworkServiceServer
-}
-
 func (s *Server) GetNetworkInterface(_ context.Context, _ *pb.NetworkInterfaceRequest) (*pb.NetworkInterfaceResponse, error) {
 	utils.LogInfo("called GetNetworkInterface")
 	res := &pb.NetworkInterfaceResponse{}

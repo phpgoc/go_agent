@@ -50,6 +50,13 @@ namespace GrpcLib
             var reply = client.GetNetworkInterface(new NetworkInterfaceRequest { });
             return reply;
         }
+
+        public GetAllNetworkConnectResponse GetAllNetworkConnect()
+        {
+            var client = new NetworkService.NetworkServiceClient(channel);
+            var reply = client.GetAllNetworkConnect(new GetAllNetworkConnectRequest { });
+            return reply;
+        }
         
          public async Task  FileDownload(string remote , string local)
          {
@@ -58,10 +65,11 @@ namespace GrpcLib
              {
                  //异常视乎只发生在write时，先创建stream，再写一个一个字符，如果正常再重新创建
                  // Get the directory part of the local path
-                 string directory = Path.GetDirectoryName(local);
+                 string? directory = Path.GetDirectoryName(local);
+                 
 
                  // Check if the directory exists
-                 if (!Directory.Exists(directory))
+                 if (directory == null ||  !Directory.Exists(directory))
                  {
                      Console.WriteLine($"The directory {directory} does not exist.");
                      return;

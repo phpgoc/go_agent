@@ -5,6 +5,7 @@ package agent_proto;
 
 service NetworkService{
     rpc GetNetworkInterface(NetworkInterfaceRequest) returns (NetworkInterfaceResponse) {}
+    rpc GetAllNetworkConnect(GetAllNetworkConnectRequest) returns (GetAllNetworkConnectResponse) {}
 }
 
 message NetworkInterfaceRequest{
@@ -18,5 +19,26 @@ message NetworkInterface{
     string mac = 2;
     repeated string ipv4 = 3;
     repeated string ipv6 = 4;
-    string flags = 7;
+    string flags = 5;
+}
+
+message GetAllNetworkConnectRequest{
+}
+
+message GetAllNetworkConnectResponse{
+    string message = 1;
+    repeated NetworkConnect network_connects = 2;
+}
+message NetworkConnect{
+    uint32 fd = 1;
+    string family = 2;
+    string type = 3;
+    int32 pid = 4;
+    Address local = 5;
+    Address remote = 6;
+    string status = 7;
+}
+message Address{
+    string ip = 1;
+    uint32 port = 2;
 }

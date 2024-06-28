@@ -61,6 +61,14 @@ public class GrpcCaller
         PrintJson(networkInterfaceList);
     }
     
+    public void CallGetAllNetworkConnect()
+    {
+        Console.WriteLine("call getAllNetworkConnect");
+        GetAllNetworkConnectResponse allNetworkConnect = _callGrpcLib.GetAllNetworkConnect();
+        PrintJson(allNetworkConnect);
+    }
+    
+    
     public async Task CallFileDownload(string remote, string local)
     {
         Console.WriteLine("call fileDownload");
