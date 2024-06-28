@@ -1,14 +1,10 @@
-package user_list
+package system
 
 import (
 	"context"
 	pb "go-agent/agent_proto"
 	"go-agent/utils"
 )
-
-type Server struct {
-	pb.UnimplementedGetUserListServer
-}
 
 func (s *Server) GetUserList(_ context.Context, _ *pb.UserListRequest) (*pb.UserListResponse, error) {
 	utils.LogInfo("call GetUserList")

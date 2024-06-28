@@ -5,8 +5,7 @@ option go_package = "./agent_proto";
 package agent_proto;
 
 
-service GetApacheInfo {
-
+service ApacheService {
   rpc GetApacheInfo (GetApacheInfoRequest) returns (GetApacheInfoResponse) {}
 }
 

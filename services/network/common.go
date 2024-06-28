@@ -9,7 +9,7 @@ import (
 )
 
 type Server struct {
-	pb.UnimplementedNetworkServer
+	pb.UnimplementedNetworkServiceServer
 }
 
 func (s *Server) GetNetworkInterface(_ context.Context, _ *pb.NetworkInterfaceRequest) (*pb.NetworkInterfaceResponse, error) {

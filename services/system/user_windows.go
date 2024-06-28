@@ -1,6 +1,6 @@
 //go:build windows
 
-package user_list
+package system
 
 import (
 	"errors"

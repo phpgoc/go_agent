@@ -9,11 +9,11 @@ import (
 )
 
 type Server struct {
-	pb.UnimplementedFileServer
+	pb.UnsafeFileServiceServer
 }
 
 // DownloadFile 性能还不错 ，肯定和ssd有关，本地拷贝600M用不到 1秒
-func (s *Server) DownloadFile(req *pb.DownloadFileRequest, resStream pb.File_DownloadFileServer) error {
+func (s *Server) DownloadFile(req *pb.DownloadFileRequest, resStream pb.FileService_DownloadFileServer) error {
 	utils.LogInfo(fmt.Sprintf("called DownloadFile, filename: %s", req.Filename))
 	var chunk [1024]byte
 	fileName := req.Filename

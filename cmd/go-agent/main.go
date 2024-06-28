@@ -3,12 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go-agent/services/apache"
 	"go-agent/services/file"
-	"go-agent/services/get_apache_info"
-	"go-agent/services/get_sys_info"
 	"go-agent/services/helloworld"
 	"go-agent/services/network"
-	"go-agent/services/user_list"
+	"go-agent/services/system"
 	"go-agent/utils"
 	"log"
 	"net"
@@ -37,11 +36,10 @@ func main() {
 	}
 	s := grpc.NewServer()
 	pb.RegisterGreeterServer(s, &helloworld.Server{})
-	pb.RegisterGetApacheInfoServer(s, &get_apache_info.Server{})
-	pb.RegisterGetSysInfoServer(s, &get_sys_info.Server{})
-	pb.RegisterGetUserListServer(s, &user_list.Server{})
-	pb.RegisterNetworkServer(s, &network.Server{})
-	pb.RegisterFileServer(s, &file.Server{})
+	pb.RegisterApacheServiceServer(s, &apache.Server{})
+	pb.RegisterSystemServiceServer(s, &system.Server{})
+	pb.RegisterNetworkServiceServer(s, &network.Server{})
+	pb.RegisterFileServiceServer(s, &file.Server{})
 
 	utils.LogInfo(fmt.Sprintf("server listening at %v", lis.Addr()))
 	if err := s.Serve(lis); err != nil {

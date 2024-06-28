@@ -1,4 +1,4 @@
-package get_apache_info
+package apache
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 )
 
 type Server struct {
-	pb.UnimplementedGetApacheInfoServer
+	pb.UnimplementedApacheServiceServer
 }
 
 func (s *Server) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*pb.GetApacheInfoResponse, error) {
@@ -19,17 +19,6 @@ func (s *Server) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*
 	var err error
 	var apacheV string
 
-	//大V可能会返回错误，即使有apache，报错还不不影响apache正常运行，所用用小v判断是否存在，如果存在则用大V
-	if _, err = utils.RunCmd("apache2 -v"); err == nil {
-		apacheV, err = utils.RunCmd("apache2 -V")
-	} else if apacheV, err = utils.RunCmd("apache -v"); err == nil {
-		apacheV, _ = utils.RunCmd("apache -V")
-	} else if apacheV, err = utils.RunCmd("httpd -v"); err == nil {
-		apacheV, _ = utils.RunCmd("httpd -V")
-	} else {
-		response.Message = "can't find apache"
-		return &response, err
-	}
 	apacheCmd := utils.FindCommandFromPathAndProcessByMatchStringArray([]string{"apache2", "httpd", "apache"})
 	if apacheCmd == "" {
 		response.Message = "can't find apache"

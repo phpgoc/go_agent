@@ -24,28 +24,29 @@ namespace GrpcLib
         
         public GetApacheInfoResponse GetApacheInfo()
         {
-            var client = new GetApacheInfo.GetApacheInfoClient(channel);
+            var client = new ApacheService.ApacheServiceClient(channel);
             var reply = client.GetApacheInfo(new GetApacheInfoRequest { });
             return reply;
         }
 
         public GetSysInfoResponse GetSysInfo()
         {
-            var client = new GetSysInfo.GetSysInfoClient(channel);
+
+            var client = new SystemService.SystemServiceClient(channel);
             var reply = client.GetSysInfo(new GetSysInfoRequest { });
             return reply;
         }
         
         public UserListResponse GetUserList()
         {
-            var client = new GetUserList.GetUserListClient(channel);
+            var client = new SystemService.SystemServiceClient(channel);
             var reply = client.GetUserList(new UserListRequest { });
             return reply;
         } 
         
         public NetworkInterfaceResponse GetNetworkInterface()
         {
-            var client = new Network.NetworkClient(channel);
+            var client = new NetworkService.NetworkServiceClient(channel);
             var reply = client.GetNetworkInterface(new NetworkInterfaceRequest { });
             return reply;
         }
@@ -67,7 +68,7 @@ namespace GrpcLib
                  }
                  
                  await using FileStream writeStream = File.Create(local);
-                 var client = new AgentProto.File.FileClient(channel);
+                 var client = new FileService.FileServiceClient(channel);
                  using var call = client.DownloadFile(new DownloadFileRequest { Filename = remote });
                  await foreach (var res in call.ResponseStream.ReadAllAsync())
                  {

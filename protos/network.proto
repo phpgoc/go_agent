@@ -3,7 +3,7 @@ syntax = "proto3";
 option go_package="./agent_proto";
 package agent_proto;
 
-service Network{
+service NetworkService{
     rpc GetNetworkInterface(NetworkInterfaceRequest) returns (NetworkInterfaceResponse) {}
 }
 

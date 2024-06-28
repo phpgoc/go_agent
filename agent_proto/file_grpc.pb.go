@@ -19,31 +19,31 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	File_DownloadFile_FullMethodName = "/agent_proto.File/DownloadFile"
+	FileService_DownloadFile_FullMethodName = "/agent_proto.FileService/DownloadFile"
 )
 
-// FileClient is the client API for File service.
+// FileServiceClient is the client API for FileService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type FileClient interface {
-	DownloadFile(ctx context.Context, in *DownloadFileRequest, opts ...grpc.CallOption) (File_DownloadFileClient, error)
+type FileServiceClient interface {
+	DownloadFile(ctx context.Context, in *DownloadFileRequest, opts ...grpc.CallOption) (FileService_DownloadFileClient, error)
 }
 
-type fileClient struct {
+type fileServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewFileClient(cc grpc.ClientConnInterface) FileClient {
-	return &fileClient{cc}
+func NewFileServiceClient(cc grpc.ClientConnInterface) FileServiceClient {
+	return &fileServiceClient{cc}
 }
 
-func (c *fileClient) DownloadFile(ctx context.Context, in *DownloadFileRequest, opts ...grpc.CallOption) (File_DownloadFileClient, error) {
+func (c *fileServiceClient) DownloadFile(ctx context.Context, in *DownloadFileRequest, opts ...grpc.CallOption) (FileService_DownloadFileClient, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &File_ServiceDesc.Streams[0], File_DownloadFile_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &FileService_ServiceDesc.Streams[0], FileService_DownloadFile_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &fileDownloadFileClient{ClientStream: stream}
+	x := &fileServiceDownloadFileClient{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -53,16 +53,16 @@ func (c *fileClient) DownloadFile(ctx context.Context, in *DownloadFileRequest, 
 	return x, nil
 }
 
-type File_DownloadFileClient interface {
+type FileService_DownloadFileClient interface {
 	Recv() (*DownloadFileResponse, error)
 	grpc.ClientStream
 }
 
-type fileDownloadFileClient struct {
+type fileServiceDownloadFileClient struct {
 	grpc.ClientStream
 }
 
-func (x *fileDownloadFileClient) Recv() (*DownloadFileResponse, error) {
+func (x *fileServiceDownloadFileClient) Recv() (*DownloadFileResponse, error) {
 	m := new(DownloadFileResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -70,66 +70,66 @@ func (x *fileDownloadFileClient) Recv() (*DownloadFileResponse, error) {
 	return m, nil
 }
 
-// FileServer is the server API for File service.
-// All implementations must embed UnimplementedFileServer
+// FileServiceServer is the server API for FileService service.
+// All implementations must embed UnimplementedFileServiceServer
 // for forward compatibility
-type FileServer interface {
-	DownloadFile(*DownloadFileRequest, File_DownloadFileServer) error
-	mustEmbedUnimplementedFileServer()
+type FileServiceServer interface {
+	DownloadFile(*DownloadFileRequest, FileService_DownloadFileServer) error
+	mustEmbedUnimplementedFileServiceServer()
 }
 
-// UnimplementedFileServer must be embedded to have forward compatible implementations.
-type UnimplementedFileServer struct {
+// UnimplementedFileServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedFileServiceServer struct {
 }
 
-func (UnimplementedFileServer) DownloadFile(*DownloadFileRequest, File_DownloadFileServer) error {
+func (UnimplementedFileServiceServer) DownloadFile(*DownloadFileRequest, FileService_DownloadFileServer) error {
 	return status.Errorf(codes.Unimplemented, "method DownloadFile not implemented")
 }
-func (UnimplementedFileServer) mustEmbedUnimplementedFileServer() {}
+func (UnimplementedFileServiceServer) mustEmbedUnimplementedFileServiceServer() {}
 
-// UnsafeFileServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to FileServer will
+// UnsafeFileServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to FileServiceServer will
 // result in compilation errors.
-type UnsafeFileServer interface {
-	mustEmbedUnimplementedFileServer()
+type UnsafeFileServiceServer interface {
+	mustEmbedUnimplementedFileServiceServer()
 }
 
-func RegisterFileServer(s grpc.ServiceRegistrar, srv FileServer) {
-	s.RegisterService(&File_ServiceDesc, srv)
+func RegisterFileServiceServer(s grpc.ServiceRegistrar, srv FileServiceServer) {
+	s.RegisterService(&FileService_ServiceDesc, srv)
 }
 
-func _File_DownloadFile_Handler(srv interface{}, stream grpc.ServerStream) error {
+func _FileService_DownloadFile_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(DownloadFileRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(FileServer).DownloadFile(m, &fileDownloadFileServer{ServerStream: stream})
+	return srv.(FileServiceServer).DownloadFile(m, &fileServiceDownloadFileServer{ServerStream: stream})
 }
 
-type File_DownloadFileServer interface {
+type FileService_DownloadFileServer interface {
 	Send(*DownloadFileResponse) error
 	grpc.ServerStream
 }
 
-type fileDownloadFileServer struct {
+type fileServiceDownloadFileServer struct {
 	grpc.ServerStream
 }
 
-func (x *fileDownloadFileServer) Send(m *DownloadFileResponse) error {
+func (x *fileServiceDownloadFileServer) Send(m *DownloadFileResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-// File_ServiceDesc is the grpc.ServiceDesc for File service.
+// FileService_ServiceDesc is the grpc.ServiceDesc for FileService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var File_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "agent_proto.File",
-	HandlerType: (*FileServer)(nil),
+var FileService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "agent_proto.FileService",
+	HandlerType: (*FileServiceServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "DownloadFile",
-			Handler:       _File_DownloadFile_Handler,
+			Handler:       _FileService_DownloadFile_Handler,
 			ServerStreams: true,
 		},
 	},

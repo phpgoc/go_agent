@@ -1,4 +1,4 @@
-package get_sys_info
+package system
 
 import (
 	"context"
@@ -11,10 +11,6 @@ import (
 	"strconv"
 	"time"
 )
-
-type Server struct {
-	pb.UnimplementedGetSysInfoServer
-}
 
 func (s *Server) GetSysInfo(_ context.Context, _ *pb.GetSysInfoRequest) (*pb.GetSysInfoResponse, error) {
 

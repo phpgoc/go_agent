@@ -4,7 +4,7 @@ option go_package = "./agent_proto";
 
 package agent_proto;
 
-service File {
+service FileService {
     rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileResponse) {}
 }
 
