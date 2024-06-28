@@ -61,7 +61,6 @@ namespace GrpcLib
                 {
                     if(res.Chunk != null)
                     {
-                        Console.WriteLine(res.Chunk.ToString());
                         await writeStream.WriteAsync(res.Chunk.Memory);
                     }
                 }

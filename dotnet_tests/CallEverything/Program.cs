@@ -15,7 +15,6 @@ class Program
 // caller.CallGetSysInfo();
 // caller.CallGetUserList();
         caller.CallGetNetworkInterface();
-        Console.WriteLine("hello2");
         await caller.CallFileDownload("/etc/hosts", "D:/hosts.txt");
     }
 }
