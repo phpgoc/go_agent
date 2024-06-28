@@ -52,24 +52,37 @@ namespace GrpcLib
         
          public async Task  FileDownload(string remote , string local)
          {
-            var client = new AgentProto.File.FileClient(channel);
-            using var call = client.DownloadFile(new DownloadFileRequest { Filename = remote });
-            try
-            {
-                await using   FileStream   writeStream = File.Create(local);
-                await foreach(var res in call.ResponseStream.ReadAllAsync())
-                {
-                    if(res.Chunk != null)
-                    {
-                        await writeStream.WriteAsync(res.Chunk.Memory);
-                    }
-                }
-                writeStream.Close();
-            }
-            catch (System.ArgumentException e)
-            {
-                Console.WriteLine($"An error occurred: {e.Message}");
-            }
+
+             try
+             {
+                 //异常视乎只发生在write时，先创建stream，再写一个一个字符，如果正常再重新创建
+                 // Get the directory part of the local path
+                 string directory = Path.GetDirectoryName(local);
+
+                 // Check if the directory exists
+                 if (!Directory.Exists(directory))
+                 {
+                     Console.WriteLine($"The directory {directory} does not exist.");
+                     return;
+                 }
+                 
+                 await using FileStream writeStream = File.Create(local);
+                 var client = new AgentProto.File.FileClient(channel);
+                 using var call = client.DownloadFile(new DownloadFileRequest { Filename = remote });
+                 await foreach (var res in call.ResponseStream.ReadAllAsync())
+                 {
+                     if (res.Chunk != null)
+                     {
+                         await writeStream.WriteAsync(res.Chunk.Memory);
+                     }
+                 }
+
+                 writeStream.Close();
+             }
+             catch (Exception e)
+             {
+                 Console.WriteLine($"An error occurred: {e.Message}");
+             }
         }
     }
 }
