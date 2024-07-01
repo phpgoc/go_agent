@@ -16,13 +16,15 @@ class Program
         // caller.CallGetApacheInfo();
         // caller.CallGetSysInfo();
 
-        // caller.CallGetUserList();
-        caller.CallGetNetworkInterface();
+        caller.CallGetUserList();
+        // caller.CallGetShellHistory("yangdianqing");
+        caller.CallGetShellHistory("");
+        // caller.CallGetNetworkInterface();
         // caller.CallGetAllNetworkConnect();
         // caller.CallGetNetworkBindList(Protocol.All, "");
         // caller.CallGetNetworkBindList(Protocol.Tcp, "");
-        caller.CallGetNetworkBindList(Protocol.All, "lo");
-        caller.CallGetNetworkBindList(Protocol.All, "Loopback Pseudo-Interface 1");
+        // caller.CallGetNetworkBindList(Protocol.All, "lo");
+        // caller.CallGetNetworkBindList(Protocol.All, "Loopback Pseudo-Interface 1");
         // await caller.CallFileDownload("/etc/hosts", "D:/hosts.txt");
     }
 }

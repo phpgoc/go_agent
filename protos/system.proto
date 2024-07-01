@@ -8,6 +8,7 @@ package agent_proto;
 service SystemService {
   rpc GetSysInfo (GetSysInfoRequest) returns (GetSysInfoResponse) {}
   rpc GetUserList (UserListRequest) returns (UserListResponse) {}
+  rpc GetShellHistory (GetShellHistoryRequest) returns (GetShellHistoryResponse) {}
 }
 
 message GetSysInfoRequest {
@@ -90,4 +91,23 @@ message DiskUsage{
   string free = 2;
   string used = 3;
   string usedPercent = 4;
+}
+
+message GetShellHistoryRequest {
+  string userName = 1;
+}
+
+message GetShellHistoryResponse {
+  string message = 1;
+  repeated UserHistory listByUserName = 2;
+}
+
+message UserHistory{
+  string userName = 1;
+  repeated ShellHistory listByShellName = 2;
+}
+
+message ShellHistory{
+  string shellName = 1;
+  repeated string listByCommand = 2;
 }

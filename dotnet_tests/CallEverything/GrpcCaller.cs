@@ -19,6 +19,7 @@ public class GrpcCaller
         _jsonBeautifierSetting = new JsonSerializerSettings
         {
             Formatting = Formatting.Indented,
+            Converters = new List<JsonConverter> { new ByteArrayJsonConverter() }
         };
     }
 
@@ -53,6 +54,13 @@ public class GrpcCaller
         Console.WriteLine("call getUserList");
         UserListResponse userList = _callGrpcLib.GetUserList();
         PrintJson(userList);
+    }
+    
+    public void CallGetShellHistory(string name)
+    {
+        Console.WriteLine("call getShellHistory");
+        GetShellHistoryResponse shellHistory = _callGrpcLib.GetShellHistory(name);
+        PrintJson(shellHistory);
     }
     public void CallGetNetworkInterface()
     {

@@ -44,6 +44,16 @@ namespace GrpcLib
             return reply;
         } 
         
+        public GetShellHistoryResponse GetShellHistory(string name)
+        {
+            var client = new SystemService.SystemServiceClient(channel);
+            var reply = client.GetShellHistory(new GetShellHistoryRequest
+            {
+                UserName = name
+            });
+            return reply;
+        }
+        
         public GetNetworkInterfaceResponse GetNetworkInterface()
         {
             var client = new NetworkService.NetworkServiceClient(channel);
