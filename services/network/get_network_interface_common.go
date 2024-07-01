@@ -2,6 +2,7 @@ package network
 
 import (
 	"context"
+	"fmt"
 	"github.com/shirou/gopsutil/v4/net"
 	pb "go-agent/agent_proto"
 	"go-agent/utils"
@@ -10,6 +11,17 @@ import (
 
 func (s *Server) GetNetworkInterface(_ context.Context, _ *pb.GetNetworkInterfaceRequest) (*pb.GetNetworkInterfaceResponse, error) {
 	utils.LogInfo("called GetNetworkInterface")
+	res, err := innerGetNetworkInterface()
+	if err != nil {
+		res.Message = err.Error()
+		return res, err
+	}
+	utils.LogInfo(fmt.Sprintf("get network interface len: %d", len(res.NetworkInterfaces)))
+	return res, nil
+
+}
+
+func innerGetNetworkInterface() (*pb.GetNetworkInterfaceResponse, error) {
 	res := &pb.GetNetworkInterfaceResponse{}
 	interfaces, err := net.Interfaces()
 	if err != nil {

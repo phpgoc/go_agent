@@ -1,5 +1,6 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System.Threading.Tasks;
+using AgentProto;
 using CallEverything;
 
 
@@ -14,9 +15,14 @@ class Program
         // caller.CallHelloWorld();
         // caller.CallGetApacheInfo();
         // caller.CallGetSysInfo();
-        caller.CallGetAllNetworkConnect();
+
         // caller.CallGetUserList();
-        // caller.CallGetNetworkInterface();
+        caller.CallGetNetworkInterface();
+        // caller.CallGetAllNetworkConnect();
+        // caller.CallGetNetworkBindList(Protocol.All, "");
+        // caller.CallGetNetworkBindList(Protocol.Tcp, "");
+        caller.CallGetNetworkBindList(Protocol.All, "lo");
+        caller.CallGetNetworkBindList(Protocol.All, "Loopback Pseudo-Interface 1");
         // await caller.CallFileDownload("/etc/hosts", "D:/hosts.txt");
     }
 }

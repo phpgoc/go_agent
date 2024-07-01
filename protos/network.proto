@@ -49,8 +49,14 @@ message Address{
 }
 
 message GetNetworkBindListRequest{
-   optional string interface_name = 1;
-   optional string protocol = 2;
+   string interface_name = 1; //空表示所有
+   Protocol protocol = 2;
+}
+
+enum Protocol{
+    ALL = 0;
+    TCP = 1;
+    UDP = 2;
 }
 
 message GetNetworkBindListResponse{

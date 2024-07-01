@@ -44,10 +44,10 @@ namespace GrpcLib
             return reply;
         } 
         
-        public NetworkInterfaceResponse GetNetworkInterface()
+        public GetNetworkInterfaceResponse GetNetworkInterface()
         {
             var client = new NetworkService.NetworkServiceClient(channel);
-            var reply = client.GetNetworkInterface(new NetworkInterfaceRequest { });
+            var reply = client.GetNetworkInterface(new GetNetworkInterfaceRequest { });
             return reply;
         }
 
@@ -55,6 +55,14 @@ namespace GrpcLib
         {
             var client = new NetworkService.NetworkServiceClient(channel);
             var reply = client.GetAllNetworkConnect(new GetAllNetworkConnectRequest { });
+            return reply;
+        }
+
+        public GetNetworkBindListResponse GetNetworkBindList(Protocol protocol, string interfaceName)
+        {
+            var client = new NetworkService.NetworkServiceClient(channel);
+            var reply = client.GetNetworkBindList(new GetNetworkBindListRequest { Protocol = protocol, InterfaceName = interfaceName });
+           
             return reply;
         }
         

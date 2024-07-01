@@ -2,40 +2,70 @@ package network
 
 import (
 	"context"
+	"fmt"
 	"github.com/shirou/gopsutil/v4/net"
 	pb "go-agent/agent_proto"
 	"go-agent/runtime"
 	"go-agent/utils"
+	"slices"
+	"strings"
 )
 
 func (s *Server) GetNetworkBindList(_ context.Context, req *pb.GetNetworkBindListRequest) (*pb.GetNetworkBindListResponse, error) {
-	utils.LogInfo("called GetNetworkBindList")
+	utils.LogInfo(fmt.Sprintf("called GetNetworkBindList: %v", req))
 	res := &pb.GetNetworkBindListResponse{}
 	var bindList []net.ConnectionStat = nil
 	var err error
-	if req.Protocol != nil {
-		if *req.Protocol == "tcp" {
-			bindList, err = net.Connections("tcp")
-		} else if *req.Protocol == "udp" {
-			bindList, err = net.Connections("udp")
-		} else {
-			res.Message = "Invalid protocol"
-			utils.LogError(res.Message)
-			return res, nil
-		}
-	} else {
+	switch req.Protocol {
+	case pb.Protocol_ALL:
 		bindList, err = net.Connections("all")
-
+	case pb.Protocol_TCP:
+		bindList, err = net.Connections("tcp")
+	case pb.Protocol_UDP:
+		bindList, err = net.Connections("udp")
 	}
-	//bindList, err := net.Connections("all")
+
 	if err != nil {
 		utils.LogError(err.Error())
-		return nil, err
+		res.Message = err.Error()
+		return res, err
+	}
+	var ethIps []string
+
+	if req.InterfaceName != "" {
+		interfaces, err := innerGetNetworkInterface()
+		if err != nil {
+			res.Message = err.Error()
+			return res, err
+		}
+		for _, i := range interfaces.NetworkInterfaces {
+			if i.Name != req.InterfaceName {
+				continue
+			}
+			//没有不包含/的，一定能Split出两个
+			for _, v4 := range i.Ipv4 {
+				ethIps = append(ethIps, strings.Split(v4, "/")[0])
+			}
+			for _, v6 := range i.Ipv6 {
+				ethIps = append(ethIps, strings.Split(v6, "/")[0])
+			}
+		}
+		if len(ethIps) == 0 {
+			res.Message = "no such interface"
+			utils.LogWarn(res.Message)
+			return res, nil
+
+		}
 	}
 
 	uniqueLAddr := make(map[addrAndPort]*networkBindAndPid)
 
 	for _, b := range bindList {
+		if ethIps != nil {
+			if !slices.Contains(ethIps, b.Laddr.IP) {
+				continue
+			}
+		}
 		if uniqueLAddr[addrAndPort{ip: b.Laddr.IP, port: b.Laddr.Port}] == nil {
 			uniqueLAddr[addrAndPort{ip: b.Laddr.IP, port: b.Laddr.Port}] =
 				&networkBindAndPid{
@@ -64,5 +94,9 @@ func (s *Server) GetNetworkBindList(_ context.Context, req *pb.GetNetworkBindLis
 		res.NetworkBinds = append(res.NetworkBinds, i.bind)
 	}
 
+	utils.LogInfo(fmt.Sprintf("GetNetworkBindList: %d", len(res.NetworkBinds)))
+	if len(res.NetworkBinds) == 0 {
+		res.Message = "This interface has no service bound"
+	}
 	return res, nil
 }

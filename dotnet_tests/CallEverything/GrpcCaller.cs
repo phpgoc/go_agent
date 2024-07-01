@@ -57,7 +57,7 @@ public class GrpcCaller
     public void CallGetNetworkInterface()
     {
         Console.WriteLine("call getNetworkInterface");
-        NetworkInterfaceResponse networkInterfaceList = _callGrpcLib.GetNetworkInterface();
+        GetNetworkInterfaceResponse networkInterfaceList = _callGrpcLib.GetNetworkInterface();
         PrintJson(networkInterfaceList);
     }
     
@@ -66,6 +66,13 @@ public class GrpcCaller
         Console.WriteLine("call getAllNetworkConnect");
         GetAllNetworkConnectResponse allNetworkConnect = _callGrpcLib.GetAllNetworkConnect();
         PrintJson(allNetworkConnect);
+    }
+    
+    public void CallGetNetworkBindList(Protocol protocol, string interfaceName)
+    {
+        Console.WriteLine("call getNetworkBindList");
+        GetNetworkBindListResponse networkBindList = _callGrpcLib.GetNetworkBindList(protocol, interfaceName);
+        PrintJson(networkBindList);
     }
     
     
