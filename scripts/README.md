@@ -11,9 +11,9 @@
   - 如果go.mod文件有变化，最好重新执行一次
 
 - [gen_go_by_protoc.sh](gen_go_by_protoc.sh) 
-   - 需要本机[build_go_env.sh](build_go_env.sh)执行成功过
-   - 生成proto文件对应的go代码
-   - 可以使用-i参数 执行只执行某些/个proto文件 使用grep匹配的 -i net 会匹配到network.proto
+   * 需要本机[build_go_env.sh](build_go_env.sh)执行成功过
+   * 生成proto文件对应的go代码
+   * 可以使用-i参数 执行只执行某些/个proto文件 使用grep匹配的 -i net 会匹配到network.proto
 
 - [build_dotnet_env.sh](build_dotnet_env.sh): docker构建dotnet环境
 
@@ -24,5 +24,7 @@
   
 - [run_go_unit_test.sh](run_go_unit_test.sh) docker运行go单元测试
 
-
+- [run_in_go_env_it.sh](run_in_go_env_it.sh) 交互式进入go环境
+  * 可以手动执行一些生成动作
+  * CGO_ENABLED=0 GOOS=Windows GOARCH=amd64 go build -o bin/agent_windows_amd64.exe ./cmd/go-agent/main.go
 
