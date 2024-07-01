@@ -26,5 +26,5 @@
 
 - [run_in_go_env_it.sh](run_in_go_env_it.sh) 交互式进入go环境
   * 可以手动执行一些生成动作
-  * CGO_ENABLED=0 GOOS=Windows GOARCH=amd64 go build -o bin/agent_windows_amd64.exe ./cmd/go-agent/main.go
+  * CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o bin/agent_windows_amd64.exe ./cmd/go-agent/main.go
 

@@ -8,9 +8,9 @@ import (
 	"strings"
 )
 
-func (s *Server) GetNetworkInterface(_ context.Context, _ *pb.NetworkInterfaceRequest) (*pb.NetworkInterfaceResponse, error) {
+func (s *Server) GetNetworkInterface(_ context.Context, _ *pb.GetNetworkInterfaceRequest) (*pb.GetNetworkInterfaceResponse, error) {
 	utils.LogInfo("called GetNetworkInterface")
-	res := &pb.NetworkInterfaceResponse{}
+	res := &pb.GetNetworkInterfaceResponse{}
 	interfaces, err := net.Interfaces()
 	if err != nil {
 		utils.LogError(err.Error())

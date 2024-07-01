@@ -4,16 +4,19 @@ option go_package="./agent_proto";
 package agent_proto;
 
 service NetworkService{
-    rpc GetNetworkInterface(NetworkInterfaceRequest) returns (NetworkInterfaceResponse) {}
+    rpc GetNetworkInterface(GetNetworkInterfaceRequest) returns ( GetNetworkInterfaceResponse) {}
     rpc GetAllNetworkConnect(GetAllNetworkConnectRequest) returns (GetAllNetworkConnectResponse) {}
+    rpc GetNetworkBindList(GetNetworkBindListRequest) returns (GetNetworkBindListResponse) {}
 }
 
-message NetworkInterfaceRequest{
+message  GetNetworkInterfaceRequest{
 }
-message NetworkInterfaceResponse{
+
+message  GetNetworkInterfaceResponse{
     string message = 1;
     repeated NetworkInterface network_interfaces = 2;
 }
+
 message NetworkInterface{
     string name = 1;
     string mac = 2;
@@ -29,6 +32,7 @@ message GetAllNetworkConnectResponse{
     string message = 1;
     repeated NetworkConnect network_connects = 2;
 }
+
 message NetworkConnect{
     uint32 fd = 1;
     string family = 2;
@@ -38,7 +42,27 @@ message NetworkConnect{
     Address remote = 6;
     string status = 7;
 }
+
 message Address{
     string ip = 1;
     uint32 port = 2;
+}
+
+message GetNetworkBindListRequest{
+   optional string interface_name = 1;
+   optional string protocol = 2;
+}
+
+message GetNetworkBindListResponse{
+    string message = 1;
+    repeated NetworkBind network_binds = 2;
+}
+
+message NetworkBind{
+    uint32 fd = 1;
+    string family = 2;
+    string type = 3;
+    Address bind = 4;
+    string status = 5;
+    string cmd = 6;
 }

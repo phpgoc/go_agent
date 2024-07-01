@@ -36,3 +36,13 @@ func family2string(family uint32) string {
 
 	}
 }
+
+type addrAndPort struct {
+	ip   string
+	port uint32
+}
+
+type networkBindAndPid struct {
+	bind *pb.NetworkBind
+	pid  int32
+}

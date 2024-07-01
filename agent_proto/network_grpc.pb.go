@@ -21,14 +21,16 @@ const _ = grpc.SupportPackageIsVersion8
 const (
 	NetworkService_GetNetworkInterface_FullMethodName  = "/agent_proto.NetworkService/GetNetworkInterface"
 	NetworkService_GetAllNetworkConnect_FullMethodName = "/agent_proto.NetworkService/GetAllNetworkConnect"
+	NetworkService_GetNetworkBindList_FullMethodName   = "/agent_proto.NetworkService/GetNetworkBindList"
 )
 
 // NetworkServiceClient is the client API for NetworkService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type NetworkServiceClient interface {
-	GetNetworkInterface(ctx context.Context, in *NetworkInterfaceRequest, opts ...grpc.CallOption) (*NetworkInterfaceResponse, error)
+	GetNetworkInterface(ctx context.Context, in *GetNetworkInterfaceRequest, opts ...grpc.CallOption) (*GetNetworkInterfaceResponse, error)
 	GetAllNetworkConnect(ctx context.Context, in *GetAllNetworkConnectRequest, opts ...grpc.CallOption) (*GetAllNetworkConnectResponse, error)
+	GetNetworkBindList(ctx context.Context, in *GetNetworkBindListRequest, opts ...grpc.CallOption) (*GetNetworkBindListResponse, error)
 }
 
 type networkServiceClient struct {
@@ -39,9 +41,9 @@ func NewNetworkServiceClient(cc grpc.ClientConnInterface) NetworkServiceClient {
 	return &networkServiceClient{cc}
 }
 
-func (c *networkServiceClient) GetNetworkInterface(ctx context.Context, in *NetworkInterfaceRequest, opts ...grpc.CallOption) (*NetworkInterfaceResponse, error) {
+func (c *networkServiceClient) GetNetworkInterface(ctx context.Context, in *GetNetworkInterfaceRequest, opts ...grpc.CallOption) (*GetNetworkInterfaceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(NetworkInterfaceResponse)
+	out := new(GetNetworkInterfaceResponse)
 	err := c.cc.Invoke(ctx, NetworkService_GetNetworkInterface_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -59,12 +61,23 @@ func (c *networkServiceClient) GetAllNetworkConnect(ctx context.Context, in *Get
 	return out, nil
 }
 
+func (c *networkServiceClient) GetNetworkBindList(ctx context.Context, in *GetNetworkBindListRequest, opts ...grpc.CallOption) (*GetNetworkBindListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetNetworkBindListResponse)
+	err := c.cc.Invoke(ctx, NetworkService_GetNetworkBindList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // NetworkServiceServer is the server API for NetworkService service.
 // All implementations must embed UnimplementedNetworkServiceServer
 // for forward compatibility
 type NetworkServiceServer interface {
-	GetNetworkInterface(context.Context, *NetworkInterfaceRequest) (*NetworkInterfaceResponse, error)
+	GetNetworkInterface(context.Context, *GetNetworkInterfaceRequest) (*GetNetworkInterfaceResponse, error)
 	GetAllNetworkConnect(context.Context, *GetAllNetworkConnectRequest) (*GetAllNetworkConnectResponse, error)
+	GetNetworkBindList(context.Context, *GetNetworkBindListRequest) (*GetNetworkBindListResponse, error)
 	mustEmbedUnimplementedNetworkServiceServer()
 }
 
@@ -72,11 +85,14 @@ type NetworkServiceServer interface {
 type UnimplementedNetworkServiceServer struct {
 }
 
-func (UnimplementedNetworkServiceServer) GetNetworkInterface(context.Context, *NetworkInterfaceRequest) (*NetworkInterfaceResponse, error) {
+func (UnimplementedNetworkServiceServer) GetNetworkInterface(context.Context, *GetNetworkInterfaceRequest) (*GetNetworkInterfaceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetNetworkInterface not implemented")
 }
 func (UnimplementedNetworkServiceServer) GetAllNetworkConnect(context.Context, *GetAllNetworkConnectRequest) (*GetAllNetworkConnectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllNetworkConnect not implemented")
+}
+func (UnimplementedNetworkServiceServer) GetNetworkBindList(context.Context, *GetNetworkBindListRequest) (*GetNetworkBindListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetNetworkBindList not implemented")
 }
 func (UnimplementedNetworkServiceServer) mustEmbedUnimplementedNetworkServiceServer() {}
 
@@ -92,7 +108,7 @@ func RegisterNetworkServiceServer(s grpc.ServiceRegistrar, srv NetworkServiceSer
 }
 
 func _NetworkService_GetNetworkInterface_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(NetworkInterfaceRequest)
+	in := new(GetNetworkInterfaceRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -104,7 +120,7 @@ func _NetworkService_GetNetworkInterface_Handler(srv interface{}, ctx context.Co
 		FullMethod: NetworkService_GetNetworkInterface_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NetworkServiceServer).GetNetworkInterface(ctx, req.(*NetworkInterfaceRequest))
+		return srv.(NetworkServiceServer).GetNetworkInterface(ctx, req.(*GetNetworkInterfaceRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -127,6 +143,24 @@ func _NetworkService_GetAllNetworkConnect_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _NetworkService_GetNetworkBindList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetNetworkBindListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NetworkServiceServer).GetNetworkBindList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: NetworkService_GetNetworkBindList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NetworkServiceServer).GetNetworkBindList(ctx, req.(*GetNetworkBindListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // NetworkService_ServiceDesc is the grpc.ServiceDesc for NetworkService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -141,6 +175,10 @@ var NetworkService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllNetworkConnect",
 			Handler:    _NetworkService_GetAllNetworkConnect_Handler,
+		},
+		{
+			MethodName: "GetNetworkBindList",
+			Handler:    _NetworkService_GetNetworkBindList_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
