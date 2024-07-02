@@ -29,7 +29,8 @@ message SiteInfo {
 
 message Log{
   string type = 1;
-  uint64 size = 2;
-  string accessTime = 3;
-  string modifiedTime = 4;
+  string filePath = 2;
+  uint64 size = 3;
+  string accessTime = 4;
+  string modifiedTime = 5;
 }

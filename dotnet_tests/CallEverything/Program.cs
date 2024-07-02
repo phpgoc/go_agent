@@ -13,12 +13,12 @@ class Program
 // GrpcCaller caller = new GrpcCaller("http://192.168.31.244:50051");
         
         // caller.CallHelloWorld();
-        // caller.CallGetApacheInfo();
+        caller.CallGetApacheInfo();
         // caller.CallGetSysInfo();
 
-        caller.CallGetUserList();
+        // caller.CallGetUserList();
         // caller.CallGetShellHistory("yangdianqing");
-        caller.CallGetShellHistory("");
+        // caller.CallGetShellHistory("");
         // caller.CallGetNetworkInterface();
         // caller.CallGetAllNetworkConnect();
         // caller.CallGetNetworkBindList(Protocol.All, "");

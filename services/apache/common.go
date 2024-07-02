@@ -120,9 +120,12 @@ func recursiveInsertData(fileName, rootPath string, response *pb.GetApacheInfoRe
 		}
 		if strings.Contains(line, "ErrorLog") {
 			//如果有错，内容会全空
-			size, accessTime, modifyTime := utils.ExtractFileStat(utils.SplitStringAndGetIndexSafely(line, " ", 1))
+			filePath := utils.SplitStringAndGetIndexSafely(line, " ", 1)
+			filePath = utils.ReplaceStrUseEnvMapStrictWithBrace(filePath, envMap)
+			size, accessTime, modifyTime := utils.ExtractFileStat(filePath)
 			var log = pb.Log{
 				Type:         "错误",
+				FilePath:     filePath,
 				Size:         size,
 				AccessTime:   accessTime,
 				ModifiedTime: modifyTime,
@@ -130,9 +133,12 @@ func recursiveInsertData(fileName, rootPath string, response *pb.GetApacheInfoRe
 			site.Logs = append(site.Logs, &log)
 		}
 		if strings.Contains(line, "CustomLog") {
-			size, accessTime, modifyTime := utils.ExtractFileStat(utils.SplitStringAndGetIndexSafely(line, " ", 1))
+			filePath := utils.SplitStringAndGetIndexSafely(line, " ", 1)
+			filePath = utils.ReplaceStrUseEnvMapStrictWithBrace(filePath, envMap)
+			size, accessTime, modifyTime := utils.ExtractFileStat(filePath)
 			var log = pb.Log{
 				Type:         "访问",
+				FilePath:     filePath,
 				Size:         size,
 				AccessTime:   accessTime,
 				ModifiedTime: modifyTime,

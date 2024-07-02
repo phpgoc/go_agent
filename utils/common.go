@@ -134,6 +134,7 @@ func findFromInAndOut(key string, in map[string]string, out map[string]string) s
 }
 
 // InterpretSourceExportToGoMap 简单字符串判断，没有能力条件判断
+// linux 独有方法
 func InterpretSourceExportToGoMap(content string, in map[string]string) (out map[string]string) {
 	out = make(map[string]string)
 
@@ -147,6 +148,7 @@ func InterpretSourceExportToGoMap(content string, in map[string]string) (out map
 		}
 		//必须开始于export
 		if !strings.HasPrefix(line, "export") {
+			//去掉line开头的export和空格
 			continue
 		}
 		if strings.Contains(line, "=") {
