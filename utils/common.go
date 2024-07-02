@@ -246,3 +246,19 @@ func GBKToUTF8(s []byte) ([]byte, error) {
 
 	return d, nil
 }
+
+func FileExists(path string) bool {
+	fs, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return !fs.IsDir()
+}
+
+func DirExists(path string) bool {
+	fs, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+	return fs.IsDir()
+}
