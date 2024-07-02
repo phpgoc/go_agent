@@ -51,7 +51,7 @@ func addCommandHistoryByFile(filePath, userName string, res *pb.GetShellHistoryR
 			},
 		},
 	}
-	for _, line := range strings.Split(fileContent, "\n") {
+	for _, line := range strings.Split(fileContent, "\r\n") {
 		if line == "" {
 			continue
 		}
