@@ -13,7 +13,7 @@ class Program
 // GrpcCaller caller = new GrpcCaller("http://192.168.31.244:50051");
         
         // caller.CallHelloWorld();
-        caller.CallGetApacheInfo();
+        // caller.CallGetApacheInfo();
         // caller.CallGetSysInfo();
 
         // caller.CallGetUserList();
@@ -26,6 +26,7 @@ class Program
         // caller.CallGetNetworkBindList(Protocol.All, "lo");
         // caller.CallGetNetworkBindList(Protocol.All, "Loopback Pseudo-Interface 1");
         // await caller.CallFileDownload("/etc/hosts", "D:/hosts.txt");
+        caller.GetNginxInfo();
     }
 }
 

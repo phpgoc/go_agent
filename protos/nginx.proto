@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option go_package = "./agent_proto";
+
+package agent_proto;
+
+
+service NginxService {
+  rpc GetNginxInfo (GetNginxInfoRequest) returns (GetNginxInfoResponse) {}
+}
+
+message GetNginxInfoRequest {
+
+}
+
+message GetNginxInfoResponse {
+  string message = 1;
+  repeated NginxInstance nginxInstances = 2;
+}
+
+message NginxInstance{
+  string configPath = 1;
+  repeated NginxSiteInfo sites = 2;
+}
+
+message NginxSiteInfo {
+  int32 listen = 1;
+  string documentRoot = 2;
+  string serverAlias = 3;
+  string serverName = 4;
+  string accessTime = 5;
+  repeated NginxLog logs = 6;
+}
+
+message NginxLog{
+  string type = 1;
+  string filePath = 2;
+  uint64 size = 3;
+  string accessTime = 4;
+  string modifiedTime = 5;
+}

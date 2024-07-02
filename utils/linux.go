@@ -4,8 +4,10 @@ package utils
 
 import (
 	"errors"
+	"go-agent/runtime"
 	"os/exec"
 	"os/user"
+	"strings"
 )
 
 func osInitBefore() error {
@@ -26,6 +28,31 @@ func osInitAfter() {
 }
 
 func RunCmd(cmd string) (string, error) {
-	out, err := exec.Command("bash", "-c", cmd).Output()
+	out, err := exec.Command("bash", "-c", cmd).CombinedOutput()
 	return string(out), err
+}
+
+func IsAbsolutePath(path string) bool {
+	if len(path) == 0 {
+		return false
+	}
+	if path[0] == '/' {
+		return true
+	}
+	return false
+}
+
+func platformFindInProcess(matchStringArray []string) string {
+	for _, p := range runtime.Processes {
+		exe, err := p.Exe()
+		if err != nil {
+			continue
+		}
+		for _, matchString := range matchStringArray {
+			if strings.HasSuffix(exe, matchString) {
+				return exe
+			}
+		}
+	}
+	return ""
 }

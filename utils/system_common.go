@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"go-agent/runtime"
 	"os/exec"
 	"strings"
 	"time"
@@ -38,16 +37,5 @@ func FindCommandFromPathAndProcessByMatchStringArray(matchStringArray []string) 
 		}
 	}
 
-	for _, p := range runtime.Processes {
-		exe, err := p.Exe()
-		if err != nil {
-			continue
-		}
-		for _, matchString := range matchStringArray {
-			if strings.HasSuffix(exe, matchString) {
-				return exe
-			}
-		}
-	}
-	return ""
+	return platformFindInProcess(matchStringArray)
 }

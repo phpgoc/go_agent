@@ -111,5 +111,12 @@ namespace GrpcLib
                  Console.WriteLine($"An error occurred: {e.Message}");
              }
         }
+         
+        public GetNginxInfoResponse GetNginxInfo()
+        {
+            var client = new NginxService.NginxServiceClient(channel);
+            var reply = client.GetNginxInfo(new GetNginxInfoRequest { });
+            return reply;
+        }
     }
 }

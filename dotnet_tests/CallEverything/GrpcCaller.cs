@@ -19,7 +19,6 @@ public class GrpcCaller
         _jsonBeautifierSetting = new JsonSerializerSettings
         {
             Formatting = Formatting.Indented,
-            Converters = new List<JsonConverter> { new ByteArrayJsonConverter() }
         };
     }
 
@@ -88,5 +87,12 @@ public class GrpcCaller
     {
         Console.WriteLine("call fileDownload");
         await _callGrpcLib.FileDownload(remote, local);
+    }
+    
+    public void GetNginxInfo()
+    {
+        Console.WriteLine("call getNginxInfo");
+        GetNginxInfoResponse nginxInfo = _callGrpcLib.GetNginxInfo();
+        PrintJson(nginxInfo);
     }
 }

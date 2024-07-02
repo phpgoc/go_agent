@@ -7,6 +7,7 @@ import (
 	"go-agent/services/file"
 	"go-agent/services/helloworld"
 	"go-agent/services/network"
+	"go-agent/services/nginx"
 	"go-agent/services/system"
 	"go-agent/utils"
 	"log"
@@ -40,6 +41,7 @@ func main() {
 	pb.RegisterSystemServiceServer(s, &system.Server{})
 	pb.RegisterNetworkServiceServer(s, &network.Server{})
 	pb.RegisterFileServiceServer(s, &file.Server{})
+	pb.RegisterNginxServiceServer(s, &nginx.Server{})
 
 	utils.LogInfo(fmt.Sprintf("server listening at %v", lis.Addr()))
 	if err := s.Serve(lis); err != nil {
