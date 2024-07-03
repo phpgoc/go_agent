@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go-agent/agent_runtime"
 	"go-agent/services/apache"
 	"go-agent/services/file"
 	"go-agent/services/helloworld"
@@ -12,14 +13,11 @@ import (
 	"go-agent/utils"
 	"log"
 	"net"
+	"os"
 
 	pb "go-agent/agent_proto"
 
 	"google.golang.org/grpc"
-)
-
-var (
-	port = flag.Int("port", 50051, "The server port")
 )
 
 func main() {
@@ -27,10 +25,11 @@ func main() {
 
 	var err = utils.Init()
 	if err != nil {
+		//这里不使用utils里LogError是因Log Writer可能初始化失败
 		log.Printf(err.Error())
-		return
+		os.Exit(1)
 	}
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *agent_runtime.Port))
 	if err != nil {
 		utils.LogError(fmt.Sprintf("failed to listen: %v", err))
 		return

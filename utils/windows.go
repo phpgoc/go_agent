@@ -4,7 +4,7 @@ package utils
 
 import (
 	"errors"
-	"go-agent/runtime"
+	"go-agent/agent_runtime"
 	"go-agent/utils/windows"
 	"os/exec"
 	"strings"
@@ -41,7 +41,7 @@ func IsAbsolutePath(path string) bool {
 }
 
 func platformFindInProcess(matchStringArray []string) string {
-	for _, p := range runtime.Processes {
+	for _, p := range agent_runtime.GetProcesses() {
 		exe, err := p.Exe()
 		if err != nil {
 			continue

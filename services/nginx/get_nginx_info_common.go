@@ -2,9 +2,11 @@ package nginx
 
 import (
 	"context"
+	"fmt"
 	pb "go-agent/agent_proto"
-	"go-agent/runtime"
+	"go-agent/agent_runtime"
 	"go-agent/utils"
+	"path/filepath"
 	"regexp"
 )
 
@@ -16,9 +18,7 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 		return nil, nil
 	}
 	var res pb.GetNginxInfoResponse
-	utils.LogWarn(commandPath)
 	nginxV, err := utils.RunCmd(commandPath + " -V")
-	utils.LogWarn(nginxV)
 	if err != nil {
 		utils.LogError(err.Error())
 		return nil, nil
@@ -41,6 +41,7 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 		utils.LogError("can't find default error log")
 		return nil, nil
 	}
+
 	re, _ = regexp.Compile(`--http-log-path=(\S+)`)
 	if matched := re.FindStringSubmatch(nginxV); len(matched) > 1 {
 		defaultAccessLog = matched[1]
@@ -48,10 +49,20 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 		utils.LogError("can't find default access log")
 		return nil, nil
 	}
+	//windows的默认config大概是相对路径
+	if !utils.IsAbsolutePath(defaultConfigFile) {
+		//上边三个都会是相对路径
+		commandPathDir := filepath.Dir(commandPath)
+		defaultConfigFile = filepath.Join(commandPathDir, defaultConfigFile)
+		defaultErrorLog = filepath.Join(commandPathDir, defaultErrorLog)
+		defaultAccessLog = filepath.Join(commandPathDir, defaultAccessLog)
+	}
+	insertNginxInfo(defaultConfigFile, &res)
 
+	//不指定config的情况上边已经处理了
 	re, _ = regexp.Compile(`-c\s+(\S+)`)
 
-	for _, process := range runtime.Processes {
+	for _, process := range agent_runtime.GetProcesses() {
 
 		exe, _ := process.Exe()
 
@@ -64,10 +75,10 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 					continue
 				}
 				if utils.IsAbsolutePath(matched[1]) {
-					insertNginxInfo(&commandPath, matched[1], &res)
+					insertNginxInfo(matched[1], &res)
 				} else {
 					runCmdDIr, _ := process.Cwd()
-					insertNginxInfo(&commandPath, runCmdDIr+matched[1], &res)
+					insertNginxInfo(runCmdDIr+matched[1], &res)
 				}
 			}
 		}
@@ -78,6 +89,14 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 	return &res, nil
 }
 
-func insertNginxInfo(commandPath *string, configFile string, res *pb.GetNginxInfoResponse) {
+func insertNginxInfo(configFile string, res *pb.GetNginxInfoResponse) {
+	utils.LogInfo(fmt.Sprintf("configFile:%v", configFile))
+	if !utils.IsAbsolutePath(configFile) {
+		//能进来这里只有两个可能
+		//代码写错了,上边没有进行绝对路径的拼接
+		//nginx 的config是相对路径,这种我完全不知道怎么处理,没有nginx root的说法
+		utils.LogError("configFile is not absolute path : " + configFile)
+		return
+	}
 	// do something
 }

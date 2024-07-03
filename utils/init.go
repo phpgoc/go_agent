@@ -1,19 +1,11 @@
 package utils
 
 import (
-	"flag"
-	"fmt"
-	"github.com/shirou/gopsutil/v4/process"
-	"go-agent/runtime"
+	"go-agent/agent_runtime"
 	"os"
 	"path/filepath"
 )
 
-var (
-	defaultLogFileNameAtTempDir = "xxx/agent.log"
-	useFileToLog                = flag.Bool("use_file", false, fmt.Sprintf("Use file to log, if not set is Std Out,if set default is %s", defaultLogFileNameAtTempDir))
-	logFileNameAtTempDir        = flag.String("log_file", defaultLogFileNameAtTempDir, "Log file name,, Must use use_file to take effect,it is about relative paths to temporary folders")
-)
 var logFile *os.File
 
 // default std out
@@ -27,8 +19,8 @@ func Init() (err error) {
 	//}
 	defer osInitAfter()
 	//use LogFileName get path
-	if *useFileToLog {
-		fullFileName := filepath.Join(os.TempDir(), *logFileNameAtTempDir)
+	if *agent_runtime.UseFileToLog {
+		fullFileName := filepath.Join(os.TempDir(), *agent_runtime.LogFileNameAtTempDir)
 		dirName := filepath.Dir(fullFileName)
 		err = os.MkdirAll(dirName, 0755)
 		if err != nil {
@@ -38,14 +30,6 @@ func Init() (err error) {
 
 		// 适当的条件下设置writer = logFile,默认是os.Stdout
 		writer = logFile
-	}
-	//为go-agent/runtime/processes 录入
-	//runtime.Processes = make(map[int]*process.Process)
-	runtime.Processes, err = process.Processes()
-	if err != nil {
-		//不能接受这里有错
-		LogError(err.Error())
-		return err
 	}
 
 	return err

@@ -31,9 +31,9 @@ func FindCommandFromPathAndProcessByMatchStringArray(matchStringArray []string) 
 	}
 	//look path
 	for _, p := range matchStringArray {
-		_, err := exec.LookPath(p)
+		absPath, err := exec.LookPath(p)
 		if err == nil {
-			return p
+			return absPath
 		}
 	}
 

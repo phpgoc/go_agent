@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/shirou/gopsutil/v4/net"
 	pb "go-agent/agent_proto"
-	"go-agent/runtime"
+	"go-agent/agent_runtime"
 	"go-agent/utils"
 	"slices"
 	"strings"
@@ -82,7 +82,7 @@ func (s *Server) GetNetworkBindList(_ context.Context, req *pb.GetNetworkBindLis
 	}
 	//从全局processes中找到对应的pid，注意processes不是时时更新的，只在agent进程初始化时录入
 	for _, i := range uniqueLAddr {
-		for _, p := range runtime.Processes {
+		for _, p := range agent_runtime.GetProcesses() {
 			if p.Pid == i.pid {
 				exe, err := p.Exe()
 				if err != nil {
