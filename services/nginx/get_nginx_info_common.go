@@ -113,85 +113,88 @@ func insertNginxInfo(configFile string, res *pb.GetNginxInfoResponse) {
 		return
 	}
 	var thisNginxInstance pb.NginxInstance
+	var httpErrorLog = defaultErrorLog
+	var httpAccessLog = defaultAccessLog
 	var includeDirectives []gonginx.IDirective
-	var httpErrorlog = defaultErrorLog
-	var httpAccesslog = defaultAccessLog
+	var searchDirectives []gonginx.IDirective
 	for _, pi := range parsed.Directives {
 		if pi.GetName() == "http" {
-			for _, pi2 := range pi.GetBlock().GetDirectives() {
-				switch pi2.GetName() {
-				case "error_log":
-					//string数组
-					httpErrorlog = pi2.GetParameters()[0]
-				case "access_log":
-					//string数组
-					httpAccesslog = pi2.GetParameters()[0]
-				case "include":
-					if include, ok := pi2.(*gonginx.Include); ok {
-						utils.LogInfo(include.IncludePath)
-						if strings.Contains(include.IncludePath, "site") {
+			searchDirectives = pi.GetBlock().GetDirectives()
+			break
+		}
+	}
+	for {
+		if searchDirectives == nil {
+			break
+		}
+		for _, pi := range searchDirectives {
+			switch pi.GetName() {
+			case "error_log":
+				//string数组
+				httpErrorLog = pi.GetParameters()[0]
+			case "access_log":
+				//string数组
+				httpAccessLog = pi.GetParameters()[0]
+			case "include":
+				if include, ok := pi.(*gonginx.Include); ok {
+					utils.LogInfo(include.IncludePath)
+					if strings.Contains(include.IncludePath, "site") {
 
-							files, _ := utils.FindMatchedFiles(include.IncludePath)
-							for _, file := range files {
-								p3, err := parser.NewParser(file)
-								if err != nil {
-									utils.LogError(err.Error())
-									return
-								}
-								parsed3, err := p3.Parse()
-								if err != nil {
-									utils.LogError(err.Error())
-									return
-								}
-								includeDirectives = append(includeDirectives, parsed3.Directives...)
+						files, _ := utils.FindMatchedFiles(include.IncludePath)
+						for _, file := range files {
+							p3, err := parser.NewParser(file)
+							if err != nil {
+								utils.LogError(err.Error())
+								return
 							}
-						} else if strings.HasSuffix(include.IncludePath, ".conf") {
-							//把解析的东西放到parsed里不会有问题吧?
-							files, _ := utils.FindMatchedFiles(include.IncludePath)
-							for _, file := range files {
-								p3, err := parser.NewParser(file)
-								if err != nil {
-									utils.LogError(err.Error())
-									return
-								}
-								parsed3, err := p3.Parse()
-								if err != nil {
-									utils.LogError(err.Error())
-									return
-								}
-								includeDirectives = append(includeDirectives, parsed3.Directives...)
-
+							parsed3, err := p3.Parse()
+							if err != nil {
+								utils.LogError(err.Error())
+								return
 							}
-						} else {
-							continue
+							includeDirectives = append(includeDirectives, parsed3.Directives...)
 						}
-					}
-				case "server":
+					} else if strings.HasSuffix(include.IncludePath, ".conf") {
+						//把解析的东西放到parsed里不会有问题吧?
+						files, _ := utils.FindMatchedFiles(include.IncludePath)
+						for _, file := range files {
+							p3, err := parser.NewParser(file)
+							if err != nil {
+								utils.LogError(err.Error())
+								return
+							}
+							parsed3, err := p3.Parse()
+							if err != nil {
+								utils.LogError(err.Error())
+								return
+							}
+							includeDirectives = append(includeDirectives, parsed3.Directives...)
 
-				default:
-					//utils.LogInfo(pi2.GetName())
+						}
+					} else {
+						continue
+					}
 				}
+			case "server":
+				//todo add server
+				println("server")
+			default:
+				//utils.LogInfo(pi2.GetName())
 			}
 		}
+		searchDirectives = includeDirectives
+		includeDirectives = nil
 	}
 
-	for _, pi := range includeDirectives {
-		switch pi.GetName() {
-		case "server":
-			println("server")
-		default:
-			utils.LogInfo(pi.GetName())
-		}
-	}
-	size, _, modifyTime := utils.ExtractFileStat(httpErrorlog)
+	size, _, modifyTime := utils.ExtractFileStat(httpErrorLog)
 	thisNginxInstance.ErrorLog = &pb.NginxLog{
-		FilePath:   httpErrorlog,
+		FilePath:   httpErrorLog,
 		Size:       utils.FormatBytes(size),
 		ModifyTime: modifyTime,
 	}
-	size, _, modifyTime = utils.ExtractFileStat(httpAccesslog)
+	size, _, modifyTime = utils.ExtractFileStat(httpAccessLog)
 	thisNginxInstance.AccessLog = &pb.NginxLog{
-		FilePath:   httpAccesslog,
+		FilePath:   httpAccessLog,
 		Size:       utils.FormatBytes(size),
 		ModifyTime: modifyTime,
 	}
