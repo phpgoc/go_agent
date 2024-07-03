@@ -21,6 +21,8 @@ message GetNginxInfoResponse {
 message NginxInstance{
   string configPath = 1;
   repeated NginxSiteInfo sites = 2;
+  NginxLog errorLog = 3;
+  NginxLog accessLog = 4;
 }
 
 message NginxSiteInfo {
@@ -29,13 +31,12 @@ message NginxSiteInfo {
   string serverAlias = 3;
   string serverName = 4;
   string accessTime = 5;
-  repeated NginxLog logs = 6;
+  NginxLog errorLog = 6;
+  NginxLog accessLog = 7;
 }
 
 message NginxLog{
-  string type = 1;
-  string filePath = 2;
-  uint64 size = 3;
-  string accessTime = 4;
-  string modifiedTime = 5;
+  string filePath = 1;
+  string size = 2;
+  string modifyTime = 3;
 }

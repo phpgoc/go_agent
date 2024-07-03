@@ -3,12 +3,17 @@ package nginx
 import (
 	"context"
 	"fmt"
+	"github.com/tufanbarisyildirim/gonginx"
+	"github.com/tufanbarisyildirim/gonginx/parser"
 	pb "go-agent/agent_proto"
 	"go-agent/agent_runtime"
-	"go-agent/utils"
+	utils "go-agent/utils"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
+
+var defaultConfigFile, defaultErrorLog, defaultAccessLog string
 
 func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.GetNginxInfoResponse, error) {
 	utils.LogInfo("called NginxInfo")
@@ -23,7 +28,6 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 		utils.LogError(err.Error())
 		return nil, nil
 	}
-	var defaultConfigFile, defaultErrorLog, defaultAccessLog string
 
 	var re *regexp.Regexp
 	re, _ = regexp.Compile(`--conf-path=(\S+)`)
@@ -84,8 +88,6 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 		}
 
 	}
-	_ = defaultErrorLog
-	_ = defaultAccessLog
 	return &res, nil
 }
 
@@ -98,5 +100,102 @@ func insertNginxInfo(configFile string, res *pb.GetNginxInfoResponse) {
 		utils.LogError("configFile is not absolute path : " + configFile)
 		return
 	}
+	//库还不成熟,include的文件自动解析会有问题
+	//p, err := parser.NewParser(configFile, parser.WithIncludeParsing())
+	p, err := parser.NewParser(configFile)
+	if err != nil {
+		utils.LogError(err.Error())
+		return
+	}
+	parsed, err := p.Parse()
+	if err != nil {
+		utils.LogError(err.Error())
+		return
+	}
+	var thisNginxInstance pb.NginxInstance
+	var includeDirectives []gonginx.IDirective
+	var httpErrorlog = defaultErrorLog
+	var httpAccesslog = defaultAccessLog
+	for _, pi := range parsed.Directives {
+		if pi.GetName() == "http" {
+			for _, pi2 := range pi.GetBlock().GetDirectives() {
+				switch pi2.GetName() {
+				case "error_log":
+					//string数组
+					httpErrorlog = pi2.GetParameters()[0]
+				case "access_log":
+					//string数组
+					httpAccesslog = pi2.GetParameters()[0]
+				case "include":
+					if include, ok := pi2.(*gonginx.Include); ok {
+						utils.LogInfo(include.IncludePath)
+						if strings.Contains(include.IncludePath, "site") {
+
+							files, _ := utils.FindMatchedFiles(include.IncludePath)
+							for _, file := range files {
+								p3, err := parser.NewParser(file)
+								if err != nil {
+									utils.LogError(err.Error())
+									return
+								}
+								parsed3, err := p3.Parse()
+								if err != nil {
+									utils.LogError(err.Error())
+									return
+								}
+								includeDirectives = append(includeDirectives, parsed3.Directives...)
+							}
+						} else if strings.HasSuffix(include.IncludePath, ".conf") {
+							//把解析的东西放到parsed里不会有问题吧?
+							files, _ := utils.FindMatchedFiles(include.IncludePath)
+							for _, file := range files {
+								p3, err := parser.NewParser(file)
+								if err != nil {
+									utils.LogError(err.Error())
+									return
+								}
+								parsed3, err := p3.Parse()
+								if err != nil {
+									utils.LogError(err.Error())
+									return
+								}
+								includeDirectives = append(includeDirectives, parsed3.Directives...)
+
+							}
+						} else {
+							continue
+						}
+					}
+				case "server":
+
+				default:
+					//utils.LogInfo(pi2.GetName())
+				}
+			}
+		}
+	}
+
+	for _, pi := range includeDirectives {
+		switch pi.GetName() {
+		case "server":
+			println("server")
+		default:
+			utils.LogInfo(pi.GetName())
+		}
+	}
+	size, _, modifyTime := utils.ExtractFileStat(httpErrorlog)
+	thisNginxInstance.ErrorLog = &pb.NginxLog{
+		FilePath:   httpErrorlog,
+		Size:       utils.FormatBytes(size),
+		ModifyTime: modifyTime,
+	}
+	size, _, modifyTime = utils.ExtractFileStat(httpAccesslog)
+	thisNginxInstance.AccessLog = &pb.NginxLog{
+		FilePath:   httpAccesslog,
+		Size:       utils.FormatBytes(size),
+		ModifyTime: modifyTime,
+	}
+
+	res.NginxInstances = append(res.NginxInstances, &thisNginxInstance)
 	// do something
 }

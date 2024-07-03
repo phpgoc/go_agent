@@ -47,8 +47,8 @@ func ExtractFileStat(file string) (size uint64, accessTime, modifyTime string) {
 		return
 	}
 	size = uint64(fi.Size())
-	accessTime = fi.ModTime().String()
-	modifyTime = fi.ModTime().String()
+	accessTime = FormatTime(fi.ModTime())
+	modifyTime = FormatTime(fi.ModTime())
 	return
 }
 
