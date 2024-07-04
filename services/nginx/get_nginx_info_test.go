@@ -14,7 +14,7 @@ func TestInsertNginxInfoSimple(t *testing.T) {
 	configFile := filepath.Join(dir, "test_data/simple/nginx.conf")
 
 	var res pb.GetNginxInfoResponse
-	insertNginxInfo(configFile, &res)
+	insertNginxInfo(configFile, dir, &res)
 
 	if len(res.NginxInstances) == 0 {
 		t.Errorf("Expected at least one NginxInstance, got %d", len(res.NginxInstances))
@@ -24,6 +24,6 @@ func TestInsertNginxInfoSimple(t *testing.T) {
 
 func TestInsertNginxInfoNotAbsolutePathConfig(t *testing.T) {
 	var res pb.GetNginxInfoResponse
-	insertNginxInfo("test_data/simple/nginx.conf", &res)
+	insertNginxInfo("test_data/simple/nginx.conf", "", &res)
 	assert.Equal(t, 0, len(res.NginxInstances), "Expected 0 NginxInstance, got %d", len(res.NginxInstances))
 }

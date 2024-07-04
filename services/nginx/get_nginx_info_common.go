@@ -10,10 +10,11 @@ import (
 	utils "go-agent/utils"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
-var defaultConfigFile, defaultErrorLog, defaultAccessLog string
+var defaultConfigFile, defaultErrorLog, defaultAccessLog, prefix string
 
 func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.GetNginxInfoResponse, error) {
 	utils.LogInfo("called NginxInfo")
@@ -29,30 +30,38 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 		return nil, nil
 	}
 
-	var re *regexp.Regexp
-	re, _ = regexp.Compile(`--conf-path=(\S+)`)
-	if matched := re.FindStringSubmatch(nginxV); len(matched) > 1 {
+	var reC *regexp.Regexp
+	reC, _ = regexp.Compile(`--conf-path=(\S+)`)
+	if matched := reC.FindStringSubmatch(nginxV); len(matched) > 1 {
 		defaultConfigFile = matched[1]
 	} else {
 		//应该没可能到这
 		utils.LogError("can't find default config file")
 		return nil, nil
 	}
-	re, _ = regexp.Compile(`--error-log-path=(\S+)`)
-	if matched := re.FindStringSubmatch(nginxV); len(matched) > 1 {
+	reC, _ = regexp.Compile(`--error-log-path=(\S+)`)
+	if matched := reC.FindStringSubmatch(nginxV); len(matched) > 1 {
 		defaultErrorLog = matched[1]
 	} else {
 		utils.LogError("can't find default error log")
 		return nil, nil
 	}
 
-	re, _ = regexp.Compile(`--http-log-path=(\S+)`)
-	if matched := re.FindStringSubmatch(nginxV); len(matched) > 1 {
+	reC, _ = regexp.Compile(`--http-log-path=(\S+)`)
+	if matched := reC.FindStringSubmatch(nginxV); len(matched) > 1 {
 		defaultAccessLog = matched[1]
 	} else {
 		utils.LogError("can't find default access log")
 		return nil, nil
 	}
+	reC, _ = regexp.Compile(`--prefix=(\S+)`)
+	if matched := reC.FindStringSubmatch(nginxV); len(matched) > 1 {
+		prefix = matched[1]
+	} else {
+		utils.LogError("can't find default prefix")
+		return nil, nil
+	}
+
 	//windows的默认config大概是相对路径
 	if !utils.IsAbsolutePath(defaultConfigFile) {
 		//上边三个都会是相对路径
@@ -61,10 +70,10 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 		defaultErrorLog = filepath.Join(commandPathDir, defaultErrorLog)
 		defaultAccessLog = filepath.Join(commandPathDir, defaultAccessLog)
 	}
-	insertNginxInfo(defaultConfigFile, &res)
+	insertNginxInfo(defaultConfigFile, prefix, &res)
 
 	//不指定config的情况上边已经处理了
-	re, _ = regexp.Compile(`-c\s+(\S+)`)
+	reC, _ = regexp.Compile(`-c\s+(\S+)`)
 
 	for _, process := range agent_runtime.GetProcesses() {
 
@@ -72,18 +81,32 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 
 		if exe == commandPath {
 			cmd, _ := process.Cmdline()
-			//能找到执行这个命令时是在哪个目录下吗
+			runCmdDIr, _ := process.Cwd()
 
-			if matched := re.FindStringSubmatch(cmd); len(matched) > 1 {
+			//进程里的-c必须匹配到,匹配不到的是默认配置,已经处理过了
+			if matched := reC.FindStringSubmatch(cmd); len(matched) > 1 {
 				if defaultConfigFile == matched[1] {
 					continue
+				} else if !utils.IsAbsolutePath(matched[1]) {
+					insertNginxInfo(runCmdDIr+matched[1], prefix, &res)
 				}
-				if utils.IsAbsolutePath(matched[1]) {
-					insertNginxInfo(matched[1], &res)
+				thisConfigFile := matched[1]
+				if !utils.IsAbsolutePath(thisConfigFile) {
+					thisConfigFile = runCmdDIr + matched[1]
+				}
+				rePrefix := regexp.MustCompile(`-p\s+(\S+)`)
+				//prefix用来拼接config里的相对路径,相对路径绝不是互相相对,必须是相对nginx的prefix
+				if matchedPrefix := rePrefix.FindStringSubmatch(cmd); len(matchedPrefix) > 1 {
+
+					if utils.IsAbsolutePath(matchedPrefix[1]) {
+						insertNginxInfo(thisConfigFile, matchedPrefix[1], &res)
+					} else {
+						insertNginxInfo(thisConfigFile, runCmdDIr+matchedPrefix[1], &res)
+					}
 				} else {
-					runCmdDIr, _ := process.Cwd()
-					insertNginxInfo(runCmdDIr+matched[1], &res)
+					insertNginxInfo(thisConfigFile, prefix, &res)
 				}
+
 			}
 		}
 
@@ -91,7 +114,7 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 	return &res, nil
 }
 
-func insertNginxInfo(configFile string, res *pb.GetNginxInfoResponse) {
+func insertNginxInfo(configFile string, prefix string, res *pb.GetNginxInfoResponse) {
 	utils.LogInfo(fmt.Sprintf("configFile:%v", configFile))
 	if !utils.IsAbsolutePath(configFile) {
 		//能进来这里只有两个可能
@@ -176,11 +199,55 @@ func insertNginxInfo(configFile string, res *pb.GetNginxInfoResponse) {
 					}
 				}
 			case "server":
-				//todo add server
-				println("server")
+
+				var thisServer = pb.NginxServerInfo{}
+				for _, serverI := range pi.GetBlock().GetDirectives() {
+					switch serverI.GetName() {
+					case "server_name":
+						thisServer.ServerName = serverI.GetParameters()[0]
+					case "listen":
+
+						num, err := strconv.Atoi(serverI.GetParameters()[0])
+						if err != nil {
+							utils.LogError(err.Error())
+							continue
+						}
+						thisServer.Listen = uint32(num)
+					case "root":
+						thisServer.Root = serverI.GetParameters()[0]
+					case "error_log":
+						errorLogFile := serverI.GetParameters()[0]
+						if !utils.IsAbsolutePath(serverI.GetParameters()[0]) {
+							errorLogFile = filepath.Join(prefix, serverI.GetParameters()[0])
+						}
+						size, _, modifyTime := utils.ExtractFileStat(errorLogFile)
+						thisServer.ErrorLog = &pb.NginxLog{
+							FilePath:   serverI.GetParameters()[0],
+							Size:       utils.FormatBytes(size),
+							ModifyTime: modifyTime,
+						}
+					case "access_log":
+						accessLogFile := serverI.GetParameters()[0]
+						if !utils.IsAbsolutePath(serverI.GetParameters()[0]) {
+							accessLogFile = filepath.Join(prefix, serverI.GetParameters()[0])
+						}
+						size, _, modifyTime := utils.ExtractFileStat(accessLogFile)
+						thisServer.AccessLog = &pb.NginxLog{
+							FilePath:   serverI.GetParameters()[0],
+							Size:       utils.FormatBytes(size),
+							ModifyTime: modifyTime,
+						}
+					default:
+						utils.LogInfo(serverI.GetName())
+						utils.LogInfo(serverI.GetParameters()[0])
+						continue
+					}
+				}
+				thisNginxInstance.Servers = append(thisNginxInstance.Servers, &thisServer)
 			default:
 				//utils.LogInfo(pi2.GetName())
 			}
+
 		}
 		searchDirectives = includeDirectives
 		includeDirectives = nil

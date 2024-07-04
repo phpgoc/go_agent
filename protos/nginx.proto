@@ -20,19 +20,18 @@ message GetNginxInfoResponse {
 
 message NginxInstance{
   string configPath = 1;
-  repeated NginxSiteInfo sites = 2;
+  repeated NginxServerInfo servers = 2;
   NginxLog errorLog = 3;
   NginxLog accessLog = 4;
 }
 
-message NginxSiteInfo {
-  int32 listen = 1;
-  string documentRoot = 2;
-  string serverAlias = 3;
-  string serverName = 4;
-  string accessTime = 5;
-  NginxLog errorLog = 6;
-  NginxLog accessLog = 7;
+message NginxServerInfo {
+  string serverName = 1;
+  uint32 listen = 2;
+  string root = 3;
+  string serverAlias = 4;
+  NginxLog errorLog = 5;
+  NginxLog accessLog = 6;
 }
 
 message NginxLog{
