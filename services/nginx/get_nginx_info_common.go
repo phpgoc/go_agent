@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-var defaultConfigFile, defaultErrorLog, defaultAccessLog, prefix string
+var defaultConfigFile, defaultErrorLog, defaultAccessLog string
 
 func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.GetNginxInfoResponse, error) {
 	utils.LogInfo("called NginxInfo")
@@ -23,6 +23,7 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 		return nil, nil
 	}
 	var res pb.GetNginxInfoResponse
+	var prefix string
 	nginxV, err := utils.RunCmd(commandPath + " -V")
 	if err != nil {
 		utils.LogError(err.Error())
@@ -131,7 +132,9 @@ func insertNginxInfo(configFile string, processPrefix string, res *pb.GetNginxIn
 		utils.LogError(err.Error())
 		return
 	}
-	var thisNginxInstance pb.NginxInstance
+	var thisNginxInstance = pb.NginxInstance{
+		ConfigPath: configFile,
+	}
 	var instanceErrorLog = defaultErrorLog
 	var instanceAccessLog = defaultAccessLog
 	var includeDirectives []gonginx.IDirective
@@ -162,26 +165,16 @@ func insertNginxInfo(configFile string, processPrefix string, res *pb.GetNginxIn
 				}
 			case "include":
 				if include, ok := pi.(*gonginx.Include); ok {
-					utils.LogInfo(include.IncludePath)
-					if strings.Contains(include.IncludePath, "site") {
-
-						files, _ := utils.FindMatchedFiles(include.IncludePath)
-						for _, file := range files {
-							p3, err := parser.NewParser(file)
-							if err != nil {
-								utils.LogError(err.Error())
-								return
-							}
-							parsed3, err := p3.Parse()
-							if err != nil {
-								utils.LogError(err.Error())
-								return
-							}
-							includeDirectives = append(includeDirectives, parsed3.Directives...)
-						}
-					} else if strings.HasSuffix(include.IncludePath, ".conf") {
+					includePath := include.IncludePath
+					if !utils.IsAbsolutePath(include.IncludePath) {
+						includePath = filepath.Join(processPrefix, include.IncludePath)
+					}
+					utils.LogInfo(includePath)
+					if strings.Contains(includePath, "mime") {
+						//这个文件不是nginx的配置文件,不需要解析
+					} else if strings.HasSuffix(includePath, ".conf") {
 						//把解析的东西放到parsed里不会有问题吧?
-						files, _ := utils.FindMatchedFiles(include.IncludePath)
+						files, _ := utils.FindMatchedFiles(includePath)
 						for _, file := range files {
 							p3, err := parser.NewParser(file)
 							if err != nil {
@@ -197,7 +190,21 @@ func insertNginxInfo(configFile string, processPrefix string, res *pb.GetNginxIn
 
 						}
 					} else {
-						continue
+						//这里还有很多出错可能,最上边的不判断mime的条件可能不足以保证正确性
+						files, _ := utils.FindMatchedFiles(includePath)
+						for _, file := range files {
+							p3, err := parser.NewParser(file)
+							if err != nil {
+								utils.LogError(err.Error())
+								return
+							}
+							parsed3, err := p3.Parse()
+							if err != nil {
+								utils.LogError(err.Error())
+								return
+							}
+							includeDirectives = append(includeDirectives, parsed3.Directives...)
+						}
 					}
 				}
 			case "server":

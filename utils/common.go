@@ -103,10 +103,10 @@ func SplitStringAndGetIndexSafely(s, sep string, index int) string {
 func FindMatchedFiles(matchPattern string) (files []string, err error) {
 
 	//split matchPattern
-	splitString := strings.Split(matchPattern, "/")
+	splitString := strings.Split(matchPattern, string(os.PathSeparator))
 	matchPattern = splitString[len(splitString)-1]
 	matchPattern = strings.ReplaceAll(matchPattern, "*", ".*")
-	pathName := strings.Join(splitString[:len(splitString)-1], "/")
+	pathName := strings.Join(splitString[:len(splitString)-1], string(os.PathSeparator))
 	dirEntries, err := os.ReadDir(pathName)
 	if err != nil {
 		return
