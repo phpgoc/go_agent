@@ -81,14 +81,14 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 
 		if exe == commandPath {
 			cmd, _ := process.Cmdline()
-			runCmdDIr, _ := process.Cwd()
+			processRunCmdDIr, _ := process.Cwd()
 
 			//进程里的-c必须匹配到,匹配不到的是默认配置,已经处理过了
 			if matched := reC.FindStringSubmatch(cmd); len(matched) > 1 {
 
 				thisConfigFile := matched[1]
 				if !utils.IsAbsolutePath(thisConfigFile) {
-					thisConfigFile = filepath.Join(runCmdDIr, matched[1])
+					thisConfigFile = filepath.Join(processRunCmdDIr, matched[1])
 				}
 				rePrefix := regexp.MustCompile(`-p\s+(\S+)`)
 				//prefix用来拼接config里的相对路径,相对路径绝不是互相相对,必须是相对nginx的prefix
@@ -97,9 +97,10 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 					if utils.IsAbsolutePath(matchedPrefix[1]) {
 						insertNginxInfo(thisConfigFile, matchedPrefix[1], &res)
 					} else {
-						insertNginxInfo(thisConfigFile, filepath.Join(runCmdDIr, matchedPrefix[1]), &res)
+						insertNginxInfo(thisConfigFile, filepath.Join(processRunCmdDIr, matchedPrefix[1]), &res)
 					}
 				} else {
+					//没匹配到-p说明用编译时的prefix
 					insertNginxInfo(thisConfigFile, prefix, &res)
 				}
 
@@ -114,9 +115,8 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 func insertNginxInfo(configFile string, processPrefix string, res *pb.GetNginxInfoResponse) {
 	utils.LogInfo(fmt.Sprintf("configFile:%v", configFile))
 	if !utils.IsAbsolutePath(configFile) {
-		//能进来这里只有两个可能
-		//代码写错了,上边没有进行绝对路径的拼接
-		//nginx 的config是相对路径,这种我完全不知道怎么处理,没有nginx root的说法
+		//能进来这里说明代码写错了,上边没有进行绝对路径的拼接
+		//或者测试用例用错了
 		utils.LogError("configFile is not absolute path : " + configFile)
 		return
 	}
@@ -271,5 +271,4 @@ func insertNginxInfo(configFile string, processPrefix string, res *pb.GetNginxIn
 	}
 
 	res.NginxInstances = append(res.NginxInstances, &thisNginxInstance)
-	// do something
 }
