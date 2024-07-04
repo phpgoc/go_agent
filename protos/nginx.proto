@@ -27,7 +27,7 @@ message NginxInstance{
 
 message NginxServerInfo {
   string serverName = 1;
-  uint32 listen = 2;
+  repeated string listens = 2;
   string root = 3;
   string serverAlias = 4;
   NginxLog errorLog = 5;

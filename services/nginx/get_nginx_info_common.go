@@ -10,7 +10,6 @@ import (
 	utils "go-agent/utils"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -85,14 +84,10 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 
 			//进程里的-c必须匹配到,匹配不到的是默认配置,已经处理过了
 			if matched := reC.FindStringSubmatch(cmd); len(matched) > 1 {
-				if defaultConfigFile == matched[1] {
-					continue
-				} else if !utils.IsAbsolutePath(matched[1]) {
-					insertNginxInfo(runCmdDIr+matched[1], prefix, &res)
-				}
+
 				thisConfigFile := matched[1]
 				if !utils.IsAbsolutePath(thisConfigFile) {
-					thisConfigFile = runCmdDIr + matched[1]
+					thisConfigFile = filepath.Join(runCmdDIr, matched[1])
 				}
 				rePrefix := regexp.MustCompile(`-p\s+(\S+)`)
 				//prefix用来拼接config里的相对路径,相对路径绝不是互相相对,必须是相对nginx的prefix
@@ -101,7 +96,7 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 					if utils.IsAbsolutePath(matchedPrefix[1]) {
 						insertNginxInfo(thisConfigFile, matchedPrefix[1], &res)
 					} else {
-						insertNginxInfo(thisConfigFile, runCmdDIr+matchedPrefix[1], &res)
+						insertNginxInfo(thisConfigFile, filepath.Join(runCmdDIr, matchedPrefix[1]), &res)
 					}
 				} else {
 					insertNginxInfo(thisConfigFile, prefix, &res)
@@ -111,10 +106,11 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 		}
 
 	}
+	utils.LogInfo(fmt.Sprintf("NginxInfo res:%s", InfoResponseWrapper{&res}))
 	return &res, nil
 }
 
-func insertNginxInfo(configFile string, prefix string, res *pb.GetNginxInfoResponse) {
+func insertNginxInfo(configFile string, processPrefix string, res *pb.GetNginxInfoResponse) {
 	utils.LogInfo(fmt.Sprintf("configFile:%v", configFile))
 	if !utils.IsAbsolutePath(configFile) {
 		//能进来这里只有两个可能
@@ -136,8 +132,8 @@ func insertNginxInfo(configFile string, prefix string, res *pb.GetNginxInfoRespo
 		return
 	}
 	var thisNginxInstance pb.NginxInstance
-	var httpErrorLog = defaultErrorLog
-	var httpAccessLog = defaultAccessLog
+	var instanceErrorLog = defaultErrorLog
+	var instanceAccessLog = defaultAccessLog
 	var includeDirectives []gonginx.IDirective
 	var searchDirectives []gonginx.IDirective
 	for _, pi := range parsed.Directives {
@@ -153,11 +149,17 @@ func insertNginxInfo(configFile string, prefix string, res *pb.GetNginxInfoRespo
 		for _, pi := range searchDirectives {
 			switch pi.GetName() {
 			case "error_log":
-				//string数组
-				httpErrorLog = pi.GetParameters()[0]
+				if !utils.IsAbsolutePath(pi.GetParameters()[0]) {
+					instanceErrorLog = filepath.Join(processPrefix, pi.GetParameters()[0])
+				} else {
+					instanceErrorLog = pi.GetParameters()[0]
+				}
 			case "access_log":
-				//string数组
-				httpAccessLog = pi.GetParameters()[0]
+				if !utils.IsAbsolutePath(pi.GetParameters()[0]) {
+					instanceAccessLog = filepath.Join(processPrefix, pi.GetParameters()[0])
+				} else {
+					instanceAccessLog = pi.GetParameters()[0]
+				}
 			case "include":
 				if include, ok := pi.(*gonginx.Include); ok {
 					utils.LogInfo(include.IncludePath)
@@ -207,18 +209,13 @@ func insertNginxInfo(configFile string, prefix string, res *pb.GetNginxInfoRespo
 						thisServer.ServerName = serverI.GetParameters()[0]
 					case "listen":
 
-						num, err := strconv.Atoi(serverI.GetParameters()[0])
-						if err != nil {
-							utils.LogError(err.Error())
-							continue
-						}
-						thisServer.Listen = uint32(num)
+						thisServer.Listens = append(thisServer.Listens, serverI.GetParameters()[0])
 					case "root":
 						thisServer.Root = serverI.GetParameters()[0]
 					case "error_log":
 						errorLogFile := serverI.GetParameters()[0]
 						if !utils.IsAbsolutePath(serverI.GetParameters()[0]) {
-							errorLogFile = filepath.Join(prefix, serverI.GetParameters()[0])
+							errorLogFile = filepath.Join(processPrefix, serverI.GetParameters()[0])
 						}
 						size, _, modifyTime := utils.ExtractFileStat(errorLogFile)
 						thisServer.ErrorLog = &pb.NginxLog{
@@ -229,7 +226,7 @@ func insertNginxInfo(configFile string, prefix string, res *pb.GetNginxInfoRespo
 					case "access_log":
 						accessLogFile := serverI.GetParameters()[0]
 						if !utils.IsAbsolutePath(serverI.GetParameters()[0]) {
-							accessLogFile = filepath.Join(prefix, serverI.GetParameters()[0])
+							accessLogFile = filepath.Join(processPrefix, serverI.GetParameters()[0])
 						}
 						size, _, modifyTime := utils.ExtractFileStat(accessLogFile)
 						thisServer.AccessLog = &pb.NginxLog{
@@ -238,8 +235,8 @@ func insertNginxInfo(configFile string, prefix string, res *pb.GetNginxInfoRespo
 							ModifyTime: modifyTime,
 						}
 					default:
-						utils.LogInfo(serverI.GetName())
-						utils.LogInfo(serverI.GetParameters()[0])
+						//utils.LogInfo(serverI.GetName())
+						//utils.LogInfo(serverI.GetParameters()[0])
 						continue
 					}
 				}
@@ -253,15 +250,15 @@ func insertNginxInfo(configFile string, prefix string, res *pb.GetNginxInfoRespo
 		includeDirectives = nil
 	}
 
-	size, _, modifyTime := utils.ExtractFileStat(httpErrorLog)
+	size, _, modifyTime := utils.ExtractFileStat(instanceErrorLog)
 	thisNginxInstance.ErrorLog = &pb.NginxLog{
-		FilePath:   httpErrorLog,
+		FilePath:   instanceErrorLog,
 		Size:       utils.FormatBytes(size),
 		ModifyTime: modifyTime,
 	}
-	size, _, modifyTime = utils.ExtractFileStat(httpAccessLog)
+	size, _, modifyTime = utils.ExtractFileStat(instanceAccessLog)
 	thisNginxInstance.AccessLog = &pb.NginxLog{
-		FilePath:   httpAccessLog,
+		FilePath:   instanceAccessLog,
 		Size:       utils.FormatBytes(size),
 		ModifyTime: modifyTime,
 	}
