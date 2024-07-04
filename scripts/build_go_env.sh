@@ -12,5 +12,5 @@ image_name="ahsy-go-agent-env"
 docker buildx build -t $image_name "$cmd_dir"/../docker/go/ || \
 docker build -t $image_name "$cmd_dir"/../docker/go/
 
-rm -rf "$cmd_dir"/../docker/go/go.mod
+rm -rf "$cmd_dir"/../docker/go/go.mod "$cmd_dir"/../docker/go/go.sum
 

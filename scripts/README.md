@@ -4,6 +4,7 @@
 - 只能在 Linux 系统上运行
 - private开头的脚本是工具脚本，不要直接调用
 - 脚本不一定能够直接使用，需要自己安装依赖，比如docker，docker-buildx，protobuf-compiler等
+- 脚本如果有参数，可以通过-h查看帮助,如果没有-h参数说明不需要参数
 
 # 特定脚本说明
 
@@ -25,6 +26,7 @@
 - [run_go_unit_test.sh](run_go_unit_test.sh) docker运行go单元测试
 
 - [run_in_go_env_it.sh](run_in_go_env_it.sh) 交互式进入go环境
+  * -p 参数可以指定端口映射，比如 -p 50051 则会映射50051:50051
   * 可以手动执行一些生成动作
   * CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o bin/agent_windows_amd64.exe ./cmd/go-agent/main.go
 
