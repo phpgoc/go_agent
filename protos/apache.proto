@@ -15,22 +15,28 @@ message GetApacheInfoRequest {
 
 message GetApacheInfoResponse {
   string message = 1;
-  repeated SiteInfo list = 2;
+  repeated ApacheInstance list = 2;
 }
 
-message SiteInfo {
-  int32 listen = 1;
-  string documentRoot = 2;
-  string serverAlias = 3;
-  string serverName = 4;
-  string accessTime = 5;
-  repeated Log logs = 6;
+message ApacheInstance{
+  string configPath = 1;
+  repeated ApacheServerInfo sites = 2;
+  ApacheLog errorLog = 3;
+  ApacheLog accessLog = 4;
+
 }
 
-message Log{
-  string type = 1;
-  string filePath = 2;
-  uint64 size = 3;
-  string accessTime = 4;
-  string modifiedTime = 5;
+message ApacheServerInfo {
+    string serverName = 1;
+    repeated string listens = 2;
+    string root = 3;
+    ApacheLog errorLog = 4;
+    ApacheLog accessLog = 5;
+}
+
+
+message ApacheLog{
+  string filePath = 1;
+  string size = 2;
+  string modifyTime = 3;
 }

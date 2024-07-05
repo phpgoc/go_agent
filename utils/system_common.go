@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -38,4 +39,15 @@ func FindCommandFromPathAndProcessByMatchStringArray(matchStringArray []string) 
 	}
 
 	return platformFindInProcess(matchStringArray)
+}
+
+func GetSystemEnvVars() map[string]string {
+	envVars := make(map[string]string)
+	for _, env := range os.Environ() {
+		pair := strings.SplitN(env, "=", 2)
+		if len(pair) == 2 {
+			envVars[pair[0]] = pair[1]
+		}
+	}
+	return envVars
 }

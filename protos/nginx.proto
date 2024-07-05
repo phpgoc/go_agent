@@ -29,9 +29,8 @@ message NginxServerInfo {
   string serverName = 1;
   repeated string listens = 2;
   string root = 3;
-  string serverAlias = 4;
-  NginxLog errorLog = 5;
-  NginxLog accessLog = 6;
+  NginxLog errorLog = 4;
+  NginxLog accessLog = 5;
 }
 
 message NginxLog{

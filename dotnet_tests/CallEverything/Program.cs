@@ -14,9 +14,9 @@ class Program
 // GrpcCaller caller = new GrpcCaller("http://192.168.31.244:50051");
         
 //         caller.CallHelloWorld();
-//         caller.CallGetApacheInfo();
+         caller.CallGetApacheInfo();
          // caller.CallGetSysInfo();
-         caller.CallGetProcessList(true);
+         // caller.CallGetProcessList(true);
 //         caller.CallGetUserList();
 //         caller.CallGetShellHistory("yangdianqing");
 //         caller.CallGetShellHistory("");

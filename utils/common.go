@@ -162,7 +162,8 @@ func findFromInAndOut(key string, in map[string]string, out map[string]string) s
 // InterpretSourceExportToGoMap 简单字符串判断，没有能力条件判断
 // linux 独有方法
 func InterpretSourceExportToGoMap(content string, in map[string]string) (out map[string]string) {
-	out = make(map[string]string)
+	//深拷贝,浪费了点空间,没有污染原始数据
+	out = DeepCopyMapGeneric(in)
 
 	lines := strings.Split(content, "\n")
 	for _, line := range lines {
@@ -289,4 +290,12 @@ func DirExists(path string) bool {
 		return false
 	}
 	return fs.IsDir()
+}
+
+func DeepCopyMapGeneric[K comparable, V any](originalMap map[K]V) map[K]V {
+	newMap := make(map[K]V)
+	for key, value := range originalMap {
+		newMap[key] = value
+	}
+	return newMap
 }
