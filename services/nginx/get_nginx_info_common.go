@@ -77,10 +77,7 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 
 	for _, process := range agent_runtime.GetProcesses() {
 
-		exe := utils.GetFirstAndLogError(
-			func() (string, error) {
-				return process.Exe()
-			})
+		exe, _ := process.Exe()
 
 		if exe == commandPath {
 			cmd := utils.GetFirstAndLogError(

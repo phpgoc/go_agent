@@ -11,6 +11,7 @@ import (
 	"go-agent/services/nginx"
 	"go-agent/services/system"
 	"go-agent/utils"
+	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 	"os"
@@ -41,6 +42,10 @@ func main() {
 	pb.RegisterNetworkServiceServer(s, &network.Server{})
 	pb.RegisterFileServiceServer(s, &file.Server{})
 	pb.RegisterNginxServiceServer(s, &nginx.Server{})
+
+	//grpcurl --plaintext localhost:50051 list
+	//增加反射服务,客户端可以通过反射服务发现服务
+	reflection.Register(s)
 
 	utils.LogInfo(fmt.Sprintf("server listening at %v", lis.Addr()))
 	if err := s.Serve(lis); err != nil {
