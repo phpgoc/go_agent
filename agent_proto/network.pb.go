@@ -16,7 +16,7 @@ import (
 const (
 	// Verify that this generated code is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(20 - protoimpl.MinVersion)
-	// Verify that agent_runtime/protoimpl is sufficiently up-to-date.
+	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
@@ -489,7 +489,7 @@ type GetNetworkBindListRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	InterfaceName string   `protobuf:"bytes,1,opt,name=interface_name,json=interfaceName,proto3" json:"interface_name,omitempty"`
+	InterfaceName string   `protobuf:"bytes,1,opt,name=interface_name,json=interfaceName,proto3" json:"interface_name,omitempty"` //空表示所有
 	Protocol      Protocol `protobuf:"varint,2,opt,name=protocol,proto3,enum=agent_proto.Protocol" json:"protocol,omitempty"`
 }
 

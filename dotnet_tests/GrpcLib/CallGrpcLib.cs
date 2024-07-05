@@ -54,6 +54,16 @@ namespace GrpcLib
             return reply;
         }
         
+        public GetProcessListResponse GetProcessList(bool withThread = false)
+        {
+            var client = new SystemService.SystemServiceClient(channel);
+            var reply = client.GetProcessList(new GetProcessListRequest
+            {
+                WithThreadTimes = withThread
+            });
+            return reply;
+        }
+        
         public GetNetworkInterfaceResponse GetNetworkInterface()
         {
             var client = new NetworkService.NetworkServiceClient(channel);

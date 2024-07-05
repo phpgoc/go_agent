@@ -22,6 +22,7 @@ const (
 	SystemService_GetSysInfo_FullMethodName      = "/agent_proto.SystemService/GetSysInfo"
 	SystemService_GetUserList_FullMethodName     = "/agent_proto.SystemService/GetUserList"
 	SystemService_GetShellHistory_FullMethodName = "/agent_proto.SystemService/GetShellHistory"
+	SystemService_GetProcessList_FullMethodName  = "/agent_proto.SystemService/GetProcessList"
 )
 
 // SystemServiceClient is the client API for SystemService service.
@@ -31,6 +32,7 @@ type SystemServiceClient interface {
 	GetSysInfo(ctx context.Context, in *GetSysInfoRequest, opts ...grpc.CallOption) (*GetSysInfoResponse, error)
 	GetUserList(ctx context.Context, in *UserListRequest, opts ...grpc.CallOption) (*UserListResponse, error)
 	GetShellHistory(ctx context.Context, in *GetShellHistoryRequest, opts ...grpc.CallOption) (*GetShellHistoryResponse, error)
+	GetProcessList(ctx context.Context, in *GetProcessListRequest, opts ...grpc.CallOption) (*GetProcessListResponse, error)
 }
 
 type systemServiceClient struct {
@@ -71,6 +73,16 @@ func (c *systemServiceClient) GetShellHistory(ctx context.Context, in *GetShellH
 	return out, nil
 }
 
+func (c *systemServiceClient) GetProcessList(ctx context.Context, in *GetProcessListRequest, opts ...grpc.CallOption) (*GetProcessListResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetProcessListResponse)
+	err := c.cc.Invoke(ctx, SystemService_GetProcessList_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SystemServiceServer is the server API for SystemService service.
 // All implementations must embed UnimplementedSystemServiceServer
 // for forward compatibility
@@ -78,6 +90,7 @@ type SystemServiceServer interface {
 	GetSysInfo(context.Context, *GetSysInfoRequest) (*GetSysInfoResponse, error)
 	GetUserList(context.Context, *UserListRequest) (*UserListResponse, error)
 	GetShellHistory(context.Context, *GetShellHistoryRequest) (*GetShellHistoryResponse, error)
+	GetProcessList(context.Context, *GetProcessListRequest) (*GetProcessListResponse, error)
 	mustEmbedUnimplementedSystemServiceServer()
 }
 
@@ -93,6 +106,9 @@ func (UnimplementedSystemServiceServer) GetUserList(context.Context, *UserListRe
 }
 func (UnimplementedSystemServiceServer) GetShellHistory(context.Context, *GetShellHistoryRequest) (*GetShellHistoryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetShellHistory not implemented")
+}
+func (UnimplementedSystemServiceServer) GetProcessList(context.Context, *GetProcessListRequest) (*GetProcessListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetProcessList not implemented")
 }
 func (UnimplementedSystemServiceServer) mustEmbedUnimplementedSystemServiceServer() {}
 
@@ -161,6 +177,24 @@ func _SystemService_GetShellHistory_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SystemService_GetProcessList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetProcessListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServiceServer).GetProcessList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SystemService_GetProcessList_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServiceServer).GetProcessList(ctx, req.(*GetProcessListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SystemService_ServiceDesc is the grpc.ServiceDesc for SystemService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -179,6 +213,10 @@ var SystemService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetShellHistory",
 			Handler:    _SystemService_GetShellHistory_Handler,
+		},
+		{
+			MethodName: "GetProcessList",
+			Handler:    _SystemService_GetProcessList_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -9,6 +9,7 @@ service SystemService {
   rpc GetSysInfo (GetSysInfoRequest) returns (GetSysInfoResponse) {}
   rpc GetUserList (UserListRequest) returns (UserListResponse) {}
   rpc GetShellHistory (GetShellHistoryRequest) returns (GetShellHistoryResponse) {}
+  rpc GetProcessList (GetProcessListRequest) returns (GetProcessListResponse) {}
 }
 
 message GetSysInfoRequest {
@@ -110,4 +111,48 @@ message UserHistory{
 message ShellHistory{
   string shellName = 1;
   repeated string listByCommand = 2;
+}
+
+message GetProcessListRequest {
+  bool withThreadTimes = 1; //一般传递false,很大,windows 不支持
+}
+
+message GetProcessListResponse {
+  string message = 1;
+  repeated ProcessInfo list = 2;
+}
+
+message ProcessInfo{
+  int32 pid = 1;
+  int32 ppid = 2;
+  string name = 3;
+  string status = 4;
+  string username = 5;
+  string createTime = 6;
+  string cpuPercent = 7;
+  string memoryPercent = 8;
+  ProcessMemoryInfoStat memory = 9;
+  repeated ThreadTimesStat threads = 11;
+  string exe = 12;
+  string cwd = 13;
+  string cmdline = 14;
+}
+
+message ProcessMemoryInfoStat  {
+  string VMS     = 1;
+  string HWM     = 2;
+  string Data    = 3;
+  string Stack   = 4;
+}
+
+message ThreadTimesStat {
+  int32 tid = 1;
+  string CPU = 2;
+  double user = 3;
+  double system = 4;
+  double idle = 5;
+  double nice = 6;
+  double ioWait = 7;
+  double irq = 8;
+  double softIrq = 9;
 }

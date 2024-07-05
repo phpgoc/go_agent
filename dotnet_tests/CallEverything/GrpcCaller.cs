@@ -61,6 +61,15 @@ public class GrpcCaller
         GetShellHistoryResponse shellHistory = _callGrpcLib.GetShellHistory(name);
         PrintJson(shellHistory);
     }
+    
+    public void CallGetProcessList(bool withThread = false)
+    {
+        Console.WriteLine("call getProcessList");
+        GetProcessListResponse processList = _callGrpcLib.GetProcessList(withThread);
+        PrintJson(processList);
+    }
+    
+    
     public void CallGetNetworkInterface()
     {
         Console.WriteLine("call getNetworkInterface");

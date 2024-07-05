@@ -41,6 +41,33 @@ func LogError(log string) {
 	writeLogFile("ERROR", log)
 }
 
+func GetFirstAndLogError[T any](fn func() (T, error), defaultValue ...T) T {
+	result, err := fn()
+	if err != nil {
+		//LogError(err.Error())
+		//这里不能使用LogError，因为caller等级不同
+		writeLogFile("ERROR", err.Error())
+	}
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+	return result
+}
+
+// GetFirstWithoutLogError 有错误不打印日志(已知大概率会出现错误的情况)
+func GetFirstWithoutLogError[T any](fn func() (T, error), defaultValue ...T) T {
+	result, err := fn()
+	if err != nil {
+		//LogError(err.Error())
+		//这里不能使用LogError，因为caller等级不同
+		//writeLogFile("ERROR", err.Error())
+	}
+	if len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+	return result
+}
+
 func ExtractFileStat(file string) (size uint64, accessTime, modifyTime string) {
 	fi, err := os.Stat(file)
 	if err != nil {
