@@ -2,7 +2,6 @@ package system
 
 import (
 	"fmt"
-	"github.com/shirou/gopsutil/v4/cpu"
 	"github.com/shirou/gopsutil/v4/process"
 	pb "go-agent/agent_proto"
 	"go-agent/utils"
@@ -68,9 +67,7 @@ func (s *Server) GetProcessList(_ context.Context, req *pb.GetProcessListRequest
 			}
 		}
 		if req.WithThreadTimes {
-			threadTimes := utils.GetFirstWithoutLogError(func() (map[int32]*cpu.TimesStat, error) {
-				return p.Threads()
-			})
+			threadTimes, _ := p.Threads()
 			for tid, threadTimeInfo := range threadTimes {
 				thisProcessInfo.Threads = append(thisProcessInfo.Threads, &pb.ThreadTimesStat{
 					Tid:     tid,
