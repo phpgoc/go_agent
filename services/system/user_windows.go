@@ -24,8 +24,8 @@ func platformUserList(response *pb.UserListResponse) error {
 
 	for _, user := range users {
 		user = strings.TrimSpace(user)
-		saparator, _ := regexp.Compile(`\s+`)
-		userSplit := saparator.Split(user, -1)
+		separator, _ := regexp.Compile(`\s+`)
+		userSplit := separator.Split(user, -1)
 		if len(userSplit) < 3 {
 			continue
 		}

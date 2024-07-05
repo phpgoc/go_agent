@@ -28,7 +28,6 @@ func (s *Server) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*
 
 	apacheV, err = utils.RunCmd(apacheCmd + " -V")
 	if err != nil {
-		response.Message = "apache compiler error or loss dependency"
 		utils.LogError(response.Message)
 		//不返回
 	}
@@ -57,7 +56,10 @@ func (s *Server) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*
 	}
 	file := filepath.Join(httpRoot, serverConfig)
 	//env dict ,this file name by guess
-	envContent, _ := utils.ReadFile(filepath.Join(httpRoot, "envvars"))
+	envContent := utils.GetFirstAndLogError(
+		func() (string, error) {
+			return utils.ReadFile(filepath.Join(httpRoot, "envvars"))
+		})
 	envMap := utils.InterpretSourceExportToGoMap(envContent, map[string]string{})
 	err = recursiveInsertData(file, httpRoot, &response, envMap)
 	if err != nil {
@@ -105,7 +107,10 @@ func recursiveInsertData(fileName, rootPath string, response *pb.GetApacheInfoRe
 		}
 		if strings.Contains(line, "VirtualHost") {
 			listenString := strings.Trim(utils.SplitStringAndGetIndexSafely(line, " ", 1), "\"")
-			parseInt, _ := strconv.ParseInt(listenString, 10, 32)
+			parseInt := utils.GetFirstAndLogError(
+				func() (int64, error) {
+					return strconv.ParseInt(listenString, 10, 32)
+				})
 			site.Listen = int32(parseInt)
 
 		}

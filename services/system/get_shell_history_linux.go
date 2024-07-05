@@ -48,7 +48,10 @@ func platformGetShellHistory(req *pb.GetShellHistoryRequest) (*pb.GetShellHistor
 func getCommandHistoryByUser(userName, homeDir string) (*pb.UserHistory, error) {
 	res := pb.UserHistory{}
 
-	filesSource, _ := utils.RunCmd(fmt.Sprintf("find %v  -name '.*_history'", homeDir))
+	filesSource := utils.GetFirstAndLogError(
+		func() (string, error) {
+			return utils.RunCmd(fmt.Sprintf("find %v  -name '.*_history'", homeDir))
+		})
 	if filesSource == "" {
 		//root可能是开发环境运行，没权利访问其他用户的目录
 		utils.LogWarn(fmt.Sprintf("user %v home not found", userName))

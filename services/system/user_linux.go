@@ -50,7 +50,10 @@ func platformUserList(response *pb.UserListResponse) error {
 			HomeDir:   arr[5],
 			Shell:     arr[6],
 		}
-		userId2Int, _ := strconv.Atoi(arr[2])
+		userId2Int := utils.GetFirstAndLogError(
+			func() (int, error) {
+				return strconv.Atoi(arr[2])
+			})
 		//convert to int
 		if userId2Int < 1000 {
 			userInfo.UserType = "system"

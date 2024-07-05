@@ -41,6 +41,9 @@ func LogError(log string) {
 	writeLogFile("ERROR", log)
 }
 
+// GetFirstAndLogError 有错误打印日志并拿默认值继续
+// 这个两个方法不适合有错return,continue,break的情况
+// 完全不会有错误的情况当然也不需要使用这两个方法
 func GetFirstAndLogError[T any](fn func() (T, error), defaultValue ...T) T {
 	result, err := fn()
 	if err != nil {
@@ -55,13 +58,9 @@ func GetFirstAndLogError[T any](fn func() (T, error), defaultValue ...T) T {
 }
 
 // GetFirstWithoutLogError 有错误不打印日志(已知大概率会出现错误的情况)
+// 这个方法使用场景更少,大多数的情况可以用_忽略错误的方式,只有不想提前赋值,想写在一行的时候才会用到
 func GetFirstWithoutLogError[T any](fn func() (T, error), defaultValue ...T) T {
-	result, err := fn()
-	if err != nil {
-		//LogError(err.Error())
-		//这里不能使用LogError，因为caller等级不同
-		//writeLogFile("ERROR", err.Error())
-	}
+	result, _ := fn()
 	if len(defaultValue) > 0 {
 		return defaultValue[0]
 	}

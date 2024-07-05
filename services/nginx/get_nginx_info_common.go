@@ -77,11 +77,21 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 
 	for _, process := range agent_runtime.GetProcesses() {
 
-		exe, _ := process.Exe()
+		exe := utils.GetFirstAndLogError(
+			func() (string, error) {
+				return process.Exe()
+			})
 
 		if exe == commandPath {
-			cmd, _ := process.Cmdline()
-			processRunCmdDIr, _ := process.Cwd()
+			cmd := utils.GetFirstAndLogError(
+				func() (string, error) {
+					return process.Cmdline()
+				})
+
+			processRunCmdDIr := utils.GetFirstAndLogError(
+				func() (string, error) {
+					return process.Cwd()
+				})
 
 			//进程里的-c必须匹配到,匹配不到的是默认配置,已经处理过了
 			if matched := reC.FindStringSubmatch(cmd); len(matched) > 1 {
@@ -174,7 +184,10 @@ func insertNginxInfo(configFile string, processPrefix string, res *pb.GetNginxIn
 						//这个文件不是nginx的配置文件,不需要解析
 					} else if strings.HasSuffix(includePath, ".conf") {
 						//把解析的东西放到parsed里不会有问题吧?
-						files, _ := utils.FindMatchedFiles(includePath)
+						files := utils.GetFirstAndLogError(
+							func() ([]string, error) {
+								return utils.FindMatchedFiles(includePath)
+							})
 						for _, file := range files {
 							p3, err := parser.NewParser(file)
 							if err != nil {
@@ -190,8 +203,11 @@ func insertNginxInfo(configFile string, processPrefix string, res *pb.GetNginxIn
 
 						}
 					} else {
-						//这里还有很多出错可能,最上边的不判断mime的条件可能不足以保证正确性
-						files, _ := utils.FindMatchedFiles(includePath)
+						//这里还有很多出错可能,最上边的不寻找mime的条件可能不足以保证正确性
+						files := utils.GetFirstAndLogError(
+							func() ([]string, error) {
+								return utils.FindMatchedFiles(includePath)
+							})
 						for _, file := range files {
 							p3, err := parser.NewParser(file)
 							if err != nil {
