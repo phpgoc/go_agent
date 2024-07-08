@@ -63,10 +63,12 @@ func (s *Server) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*
 	KVMap := platformReadEnvFile(httpDefaultRoot, envMap)
 
 	err = insertApacheInstance(filepath.Join(httpDefaultRoot, serverDefaultConfig), httpDefaultRoot, &response, KVMap)
+
 	if err != nil {
-		utils.LogError(err.Error())
+		response.Message = err.Error()
 	}
 	utils.LogInfo(response.String())
+
 	return &response, nil
 }
 
@@ -130,9 +132,9 @@ func insertApacheInstance(configFileName, httpdRoot string, response *pb.GetApac
 						if !utils.IsAbsolutePath(matchedI) {
 							matchedI = filepath.Join(httpdRoot, matchedI)
 						}
-						if strings.Contains(matched[i], "*") {
+						if strings.Contains(matchedI, "*") {
 
-							includeFiles, _ := utils.FindMatchedFiles(matched[i])
+							includeFiles, _ := utils.FindMatchedFiles(matchedI)
 							for _, includeFile := range includeFiles {
 								//文件一定存在
 								includeConfig2ContentMap[includeFile], _ = utils.ReadFile(includeFile)
@@ -218,7 +220,7 @@ func insertApacheInstance(configFileName, httpdRoot string, response *pb.GetApac
 					if inVirtualHost {
 						thisVirtualHost.ErrorLog = log
 					} else {
-						thisInstance.ErrorLog = log
+						thisInstance.ErrorLogs = append(thisInstance.ErrorLogs, log)
 					}
 
 				} else if strings.HasPrefix(line, "CustomLog") {
@@ -234,7 +236,7 @@ func insertApacheInstance(configFileName, httpdRoot string, response *pb.GetApac
 
 						customLog = matched[1]
 					} else {
-						matchedErrorLog, err := extractMatchesFromLine(line, "ErrorLog")
+						matchedErrorLog, err := extractMatchesFromLine(line, "CustomLog")
 						if err != nil {
 							utils.LogError(err.Error())
 							return err
@@ -254,7 +256,7 @@ func insertApacheInstance(configFileName, httpdRoot string, response *pb.GetApac
 					if inVirtualHost {
 						thisVirtualHost.CustomLog = log
 					} else {
-						thisInstance.CustomLog = log
+						thisInstance.CustomLogs = append(thisInstance.CustomLogs, log)
 					}
 
 				} else {

@@ -27,7 +27,7 @@ export a=1
 export a=$b
 `,
 			in:   map[string]string{"b": "221"},
-			want: map[string]string{"a": "221"},
+			want: map[string]string{"a": "221", "b": "221"},
 		},
 		{
 			name: "can deal with double quote",
@@ -35,7 +35,7 @@ export a=$b
 export a="$b"
 `,
 			in:   map[string]string{"b": "221"},
-			want: map[string]string{"a": "221"},
+			want: map[string]string{"a": "221", "b": "221"},
 		},
 		{
 			name: "can deal with big parentheses",
@@ -43,7 +43,7 @@ export a="$b"
 export		a=${b}
 `,
 			in:   map[string]string{"b": "221"},
-			want: map[string]string{"a": "221"},
+			want: map[string]string{"a": "221", "b": "221"},
 		},
 		{
 			name: "can deal with /",
@@ -51,7 +51,7 @@ export		a=${b}
 export a=$b/$c
 `,
 			in:   map[string]string{"b": "221", "c": "222"},
-			want: map[string]string{"a": "221/222"},
+			want: map[string]string{"a": "221/222", "b": "221", "c": "222"},
 		},
 	}
 	for _, tt := range tests {
@@ -93,6 +93,12 @@ func TestReplaceStrUseEnvMapStrictWithBrace(t *testing.T) {
 			content: `${a}123`,
 			envMap:  map[string]string{},
 			want:    "123",
+		},
+		{
+			name:    "can deal with double quote",
+			content: `"$a"123`,
+			envMap:  map[string]string{"a": "456"},
+			want:    "456123",
 		},
 	}
 	for _, tt := range tests {

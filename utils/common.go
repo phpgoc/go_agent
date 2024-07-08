@@ -233,7 +233,7 @@ func InterpretSourceExportToGoMap(content string, in map[string]string) (out map
 }
 
 func ReplaceStrUseEnvMapStrictWithBrace(content string, envMap map[string]string) string {
-	re := regexp.MustCompile(`\${(\w+)}`)
+	re := regexp.MustCompile(`\${\w+}`)
 
 	matches := re.FindAll([]byte(content), -1)
 	for _, match := range matches {
@@ -243,6 +243,18 @@ func ReplaceStrUseEnvMapStrictWithBrace(content string, envMap map[string]string
 		} else {
 			content = strings.ReplaceAll(content, string(match), "")
 		}
+	}
+
+	re = regexp.MustCompile(`"\$\w+"`)
+	matches = re.FindAll([]byte(content), -1)
+	for _, match := range matches {
+		key := string(match[2 : len(match)-1])
+		if value, ok := envMap[key]; ok {
+			content = strings.ReplaceAll(content, string(match), value)
+		} else {
+			content = strings.ReplaceAll(content, string(match), "")
+		}
+
 	}
 
 	return content

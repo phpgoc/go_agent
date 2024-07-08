@@ -20,8 +20,8 @@ message GetApacheInfoResponse {
   repeated string serverNames = 4;
   repeated string listens = 5;
   repeated ApacheVirtualHost virtualHosts = 6;
-  ApacheLog errorLog = 7;
-  ApacheLog customLog = 8;
+  repeated ApacheLog errorLogs = 7;
+  repeated ApacheLog customLogs = 8;
 }
 
 
