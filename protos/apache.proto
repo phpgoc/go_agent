@@ -15,23 +15,23 @@ message GetApacheInfoRequest {
 
 message GetApacheInfoResponse {
   string message = 1;
-  repeated ApacheInstance list = 2;
+  repeated string configFiles = 2;
+  string root = 3;
+  repeated string serverNames = 4;
+  repeated string listens = 5;
+  repeated ApacheVirtualHost virtualHosts = 6;
+  ApacheLog errorLog = 7;
+  ApacheLog customLog = 8;
 }
 
-message ApacheInstance{
-  string configPath = 1;
-  repeated ApacheServerInfo sites = 2;
-  ApacheLog errorLog = 3;
-  ApacheLog accessLog = 4;
 
-}
 
-message ApacheServerInfo {
-    string serverName = 1;
+message ApacheVirtualHost {
+    repeated string serverNames = 1;
     repeated string listens = 2;
     string root = 3;
     ApacheLog errorLog = 4;
-    ApacheLog accessLog = 5;
+    ApacheLog customLog = 5;
 }
 
 

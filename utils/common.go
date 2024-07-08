@@ -284,13 +284,13 @@ func FileExists(path string) bool {
 	return !fs.IsDir()
 }
 
-func DirExists(path string) bool {
-	fs, err := os.Stat(path)
-	if err != nil {
-		return false
-	}
-	return fs.IsDir()
-}
+//func DirExists(path string) bool {
+//	fs, err := os.Stat(path)
+//	if err != nil {
+//		return false
+//	}
+//	return fs.IsDir()
+//}
 
 func DeepCopyMapGeneric[K comparable, V any](originalMap map[K]V) map[K]V {
 	newMap := make(map[K]V)
