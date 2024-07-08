@@ -75,7 +75,7 @@ func (s *Server) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*
 // insertApacheInstance apache的配置文件加载过于复杂,目前不支持多个apache实例
 func insertApacheInstance(configFileName, httpdRoot string, response *pb.GetApacheInfoResponse, envMap map[string]string) (err error) {
 	inVirtualHost := false
-	var thisVirtualHost = pb.ApacheVirtualHost{}
+	var thisVirtualHost = &pb.ApacheVirtualHost{}
 	//目前这行看起来没用,只为用这个变量复制,未来如果有可能支持多个apache实例时需要改的代码少写
 	thisInstance := response
 
@@ -90,6 +90,12 @@ func insertApacheInstance(configFileName, httpdRoot string, response *pb.GetApac
 		for file, content := range sourceConfig2ContentMap {
 			var useful = false
 			lines := strings.Split(content, utils.LineBreak)
+			//在windows下无法正确处理\n做分隔符的文件
+			if len(lines) == 1 {
+				lines = strings.Split(content, "\n")
+			}
+
+			// lineI只是为了debug condition,不用
 			for lineI, line := range lines {
 
 				line = strings.TrimSpace(line)
@@ -101,24 +107,25 @@ func insertApacheInstance(configFileName, httpdRoot string, response *pb.GetApac
 				}
 				if strings.HasPrefix(line, "<VirtualHost") {
 					inVirtualHost = true
-					thisVirtualHost = pb.ApacheVirtualHost{}
-					re := regexp.MustCompile(`<VirtualHost(?:\s+(\S+))+>`)
-					matched := re.FindStringSubmatch(line)
+					thisVirtualHost = &pb.ApacheVirtualHost{}
+					virtualHostRegex := regexp.MustCompile(`<VirtualHost([^>]+)>`)
+					matched := virtualHostRegex.FindStringSubmatch(line)
 					if len(matched) < 2 {
-						utils.LogError("VirtualHost format error")
+						utils.LogError("<VirtualHost format error")
 						return
 					}
-					for i := 1; i < len(matched); i++ {
-						thisVirtualHost.Listens = append(thisVirtualHost.Listens, matched[i])
-					}
+					re := regexp.MustCompile(`\S+`)
+					newMatched := re.FindAllString(matched[1], -1)
+
+					thisVirtualHost.Listens = newMatched
 				} else if strings.HasPrefix(line, "</VirtualHost") {
 					if !inVirtualHost {
 						utils.LogError("/VirtualHost format error")
 						return
 					}
-					thisInstance.VirtualHosts = append(thisInstance.VirtualHosts, &thisVirtualHost)
+					thisInstance.VirtualHosts = append(thisInstance.VirtualHosts, thisVirtualHost)
 					inVirtualHost = false
-					thisVirtualHost = pb.ApacheVirtualHost{}
+					thisVirtualHost = &pb.ApacheVirtualHost{}
 				} else if strings.HasPrefix(line, "Include") {
 					re := regexp.MustCompile(`Include(?:Optional)?(?:\s+(\S+))+`)
 					matched := re.FindStringSubmatch(line)
@@ -154,8 +161,14 @@ func insertApacheInstance(configFileName, httpdRoot string, response *pb.GetApac
 						utils.LogError("ServerName format error")
 						return
 					}
-					for i := 1; i < len(matched); i++ {
-						thisVirtualHost.ServerNames = append(thisVirtualHost.ServerNames, matched[i])
+					if inVirtualHost {
+						for i := 1; i < len(matched); i++ {
+							thisVirtualHost.ServerNames = append(thisVirtualHost.ServerNames, matched[i])
+						}
+					} else {
+						for i := 1; i < len(matched); i++ {
+							thisInstance.ServerNames = append(thisInstance.ServerNames, matched[i])
+						}
 					}
 
 				} else if strings.HasPrefix(line, "Listen") {
@@ -180,6 +193,8 @@ func insertApacheInstance(configFileName, httpdRoot string, response *pb.GetApac
 						utils.LogError("DocumentRoot format error")
 						return err
 					}
+					//去掉双引号
+					root[0] = strings.Trim(root[0], "\"")
 					// 如果在VirtualHost中,则设置VirtualHost的Root,否则设置Instance的Root
 					if inVirtualHost {
 						thisVirtualHost.Root = root[0]

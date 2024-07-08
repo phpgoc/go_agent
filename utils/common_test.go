@@ -100,6 +100,12 @@ func TestReplaceStrUseEnvMapStrictWithBrace(t *testing.T) {
 			envMap:  map[string]string{"a": "456"},
 			want:    "456123",
 		},
+		{
+			name:    "deal with underscore",
+			content: `"$a""$b_c"123`,
+			envMap:  map[string]string{"a": "456", "b_c": "789"},
+			want:    "456789123",
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
