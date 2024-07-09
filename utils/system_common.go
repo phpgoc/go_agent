@@ -25,7 +25,13 @@ func WaitUntil(cmd, expect string, interval, timeout uint) error {
 }
 
 // FindCommandFromPathAndProcessByMatchStringArray matchStringArray 具有优先级，找到第一个就返回
-func FindCommandFromPathAndProcessByMatchStringArray(matchStringArray []string) string {
+func FindCommandFromPathAndProcessByMatchStringArray(matchStringArray []string) (cmd string, env []string) {
+
+	//先找process
+	cmd, env = platformFindInProcess(matchStringArray)
+	if cmd != "" {
+		return
+	}
 	//trim every input string
 	for i, s := range matchStringArray {
 		matchStringArray[i] = strings.TrimSpace(s)
@@ -34,11 +40,11 @@ func FindCommandFromPathAndProcessByMatchStringArray(matchStringArray []string) 
 	for _, p := range matchStringArray {
 		absPath, err := exec.LookPath(p)
 		if err == nil {
-			return absPath
+			return absPath, nil
 		}
 	}
 
-	return platformFindInProcess(matchStringArray)
+	return "", nil
 }
 
 func GetSystemEnvVars() map[string]string {

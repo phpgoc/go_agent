@@ -20,7 +20,7 @@ func (s *Server) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*
 	var err error
 	var apacheV string
 
-	apacheCmd := utils.FindCommandFromPathAndProcessByMatchStringArray([]string{"apache2", "httpd", "apache"})
+	apacheCmd, env := utils.FindCommandFromPathAndProcessByMatchStringArray([]string{"apache2", "httpd", "apache"})
 	if apacheCmd == "" {
 		response.Message = "can't find apache"
 		utils.LogError(response.Message)
@@ -58,7 +58,22 @@ func (s *Server) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*
 		return &response, err
 	}
 	//获取环境变量里的值 得到一个map
-	envMap := utils.GetSystemEnvVars()
+	var envMap = make(map[string]string)
+	if env != nil {
+
+		for _, e := range env {
+			e = strings.TrimSpace(e)
+			if strings.Contains(e, "=") {
+				kv := strings.SplitN(e, "=", 2)
+				if len(kv) == 2 {
+					envMap[kv[0]] = kv[1]
+				}
+			}
+
+		}
+	} else {
+		envMap = utils.GetSystemEnvVars()
+	}
 
 	KVMap := platformReadEnvFile(httpDefaultRoot, envMap)
 

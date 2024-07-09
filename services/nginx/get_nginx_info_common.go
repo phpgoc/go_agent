@@ -17,7 +17,7 @@ var defaultConfigFile, defaultErrorLog, defaultAccessLog string
 
 func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.GetNginxInfoResponse, error) {
 	utils.LogInfo("called NginxInfo")
-	commandPath := utils.FindCommandFromPathAndProcessByMatchStringArray([]string{"nginx"})
+	commandPath, _ := utils.FindCommandFromPathAndProcessByMatchStringArray([]string{"nginx"})
 	if commandPath == "" {
 		utils.LogError("can't find nginx")
 		return nil, nil

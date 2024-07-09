@@ -40,17 +40,19 @@ func IsAbsolutePath(path string) bool {
 	return false
 }
 
-func platformFindInProcess(matchStringArray []string) string {
+func platformFindInProcess(matchStringArray []string) (cmd string, env []string) {
 	for _, p := range agent_runtime.GetProcesses() {
 		exe, err := p.Exe()
 		if err != nil {
 			continue
 		}
+
 		for _, matchString := range matchStringArray {
 			if strings.HasSuffix(exe, matchString+".exe") {
-				return exe
+				env, _ := p.Environ()
+				return exe, env
 			}
 		}
 	}
-	return ""
+	return "", nil
 }
