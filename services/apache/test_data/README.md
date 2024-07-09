@@ -22,3 +22,10 @@ source /etc/apache2/envvars
 apache2 -t -c "Include `pwd`/inlog_outlog/apache.config"
 
 ```
+
+```shell
+source /etc/apache2/envvars
+export TEST_ROOT=`pwd`/double_include
+ apache2 -t -c "Include `pwd`/double_include/apache.config"
+
+```

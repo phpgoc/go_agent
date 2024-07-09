@@ -92,7 +92,6 @@ func TestInsertApacheInstanceInLogAndOutLog(t *testing.T) {
 
 	response := &pb.GetApacheInfoResponse{}
 
-	// Mock environment variables map if needed
 	envMap := map[string]string{}
 	err = insertApacheInstance(configFilePath, httpdRoot, response, envMap)
 
@@ -106,4 +105,19 @@ func TestInsertApacheInstanceInLogAndOutLog(t *testing.T) {
 	require.True(t, strings.HasSuffix(response.VirtualHosts[0].ErrorLog.FilePath, "error_in.log"), "Expected virtual host error log to end with error_in.log")
 	require.True(t, response.VirtualHosts[0].CustomLog != nil, "Expected virtual host to have a custom log")
 	require.True(t, strings.HasSuffix(response.VirtualHosts[0].CustomLog.FilePath, "custom_in.log"), "Expected virtual host custom log to end with custom_in.log")
+}
+
+func TestInsertApacheInstanceWithDeepInclude(t *testing.T) {
+	configFilePath, err := filepath.Abs("./test_data/double_include/apache.config")
+	if err != nil {
+		t.Fatalf("Failed to get absolute path of simple.config: %v", err)
+	}
+	httpdRoot := filepath.Dir(configFilePath)
+
+	response := &pb.GetApacheInfoResponse{}
+
+	envMap := map[string]string{}
+	err = insertApacheInstance(configFilePath, httpdRoot, response, envMap)
+	require.True(t, 3 == len(response.ConfigFiles), "Expected 3 config files in the response")
+	require.True(t, reflect.DeepEqual([]string{"8081", "8082", "8083"}, response.Listens), "Expected listens to be [8081, 8082, 8083]")
 }
