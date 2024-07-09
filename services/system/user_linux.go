@@ -60,7 +60,12 @@ func platformUserList(response *pb.UserListResponse) error {
 		} else {
 			userInfo.UserType = "user"
 		}
-		lastLoginSource, _ := utils.RunCmd("lastlog -u " + arr[0])
+		lastLoginSource, err := utils.RunCmd("lastlog -u " + arr[0])
+		// lastlog命令不一定存在
+		if err != nil {
+			utils.LogError(err.Error())
+			continue
+		}
 		//获取第二行的后半段
 		lastLoginStr := strings.Split(strings.Split(lastLoginSource, "\n")[1], arr[0])[1]
 		userInfo.LastLoginTime = strings.TrimSpace(lastLoginStr)
