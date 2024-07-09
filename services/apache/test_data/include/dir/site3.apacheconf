@@ -1,0 +1,5 @@
+<VirtualHost *:80>
+    DocumentRoot "/www/site3"
+    ServerName www.site3.com
+</VirtualHost>
+# this file should not match include pattern "*.config"

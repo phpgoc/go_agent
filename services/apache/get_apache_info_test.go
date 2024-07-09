@@ -42,7 +42,7 @@ func TestInsertApacheInstanceWithSimpleConfig(t *testing.T) {
 	//    # Other directives here
 	//</VirtualHost>
 	//
-	//<VirtualHost *:80>
+	//<VirtualHost *:80
 	//    DocumentRoot "/www/example2"
 	//    ServerName www.example2.org
 	//     CustomLog logs/example2-access_log  common
@@ -80,4 +80,25 @@ func TestInsertApacheInstanceWithSimpleConfig(t *testing.T) {
 	}
 	require.Equal(t, 3, equalNum, "Expected 3 virtual hosts to match the expected configuration")
 
+}
+
+func TestInsertApacheInstanceWithInclude(t *testing.T) {
+	configFilePath, err := filepath.Abs("./test_data/include/apache.config")
+	if err != nil {
+		t.Fatalf("Failed to get absolute path of simple.config: %v", err)
+	}
+	httpdRoot := filepath.Dir(configFilePath)
+
+	// Create a new GetApacheInfoResponse instance
+	response := &pb.GetApacheInfoResponse{}
+
+	// Mock environment variables map if needed
+	envMap := map[string]string{"INCLUDE_PATH": httpdRoot}
+
+	err = insertApacheInstance(configFilePath, httpdRoot, response, envMap)
+	require.True(t, reflect.DeepEqual([]string{"8081", "8082"}, response.Listens), "Expected listens to be [8081, 8082]")
+
+	require.Equal(t, 4, len(response.ConfigFiles), "Expected 4 config files in the response")
+
+	require.Equal(t, 2, len(response.VirtualHosts), "Expected 2 virtual hosts in the response")
 }

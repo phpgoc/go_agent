@@ -137,7 +137,6 @@ func SplitStringAndGetIndexSafelyByDefault(s string, index int) string {
 }
 
 func FindMatchedFiles(matchPattern string) (files []string, err error) {
-
 	//split matchPattern
 	splitString := strings.Split(matchPattern, string(os.PathSeparator))
 	matchPattern = splitString[len(splitString)-1]
@@ -299,7 +298,8 @@ func GBKToUTF8(s []byte) ([]byte, error) {
 }
 
 func FileExists(path string) bool {
-	fs, err := os.Stat(path)
+	cleanedPath := filepath.Clean(path)
+	fs, err := os.Stat(cleanedPath)
 	if err != nil {
 		return false
 	}

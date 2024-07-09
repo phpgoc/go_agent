@@ -127,6 +127,9 @@ func insertApacheInstance(configFileName, httpdRoot string, response *pb.GetApac
 					inVirtualHost = false
 					thisVirtualHost = &pb.ApacheVirtualHost{}
 				} else if strings.HasPrefix(line, "Include") {
+					if strings.Contains(line, "$") {
+						line = utils.ReplaceStrUseEnvMapStrictWithBrace(line, envMap)
+					}
 					re := regexp.MustCompile(`Include(?:Optional)?(?:\s+(\S+))+`)
 					matched := re.FindStringSubmatch(line)
 					if len(matched) < 2 {
@@ -134,11 +137,13 @@ func insertApacheInstance(configFileName, httpdRoot string, response *pb.GetApac
 						//不致命
 						continue
 					}
+
 					for i := 1; i < len(matched); i++ {
 						matchedI := matched[i]
 						if !utils.IsAbsolutePath(matchedI) {
 							matchedI = filepath.Join(httpdRoot, matchedI)
 						}
+						matchedI = filepath.Clean(matchedI)
 						if strings.Contains(matchedI, "*") {
 
 							includeFiles, _ := utils.FindMatchedFiles(matchedI)
@@ -147,8 +152,14 @@ func insertApacheInstance(configFileName, httpdRoot string, response *pb.GetApac
 								includeConfig2ContentMap[includeFile], _ = utils.ReadFile(includeFile)
 							}
 						} else {
+
 							if !utils.FileExists(matchedI) {
-								continue
+								if strings.HasPrefix(line, "IncludeOptional") {
+									continue
+								} else {
+									utils.LogError("Include file not found")
+									return
+								}
 							}
 							includeConfig2ContentMap[matchedI], _ = utils.ReadFile(matchedI)
 						}
