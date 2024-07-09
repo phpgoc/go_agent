@@ -33,7 +33,7 @@ func (s *Server) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*
 		//不返回
 	}
 	var httpDefaultRoot, serverDefaultConfig string
-	for _, line := range strings.Split(apacheV, "\n") {
+	for _, line := range strings.Split(apacheV, utils.LineBreak) {
 		if strings.Contains(line, "HTTPD_ROOT") {
 			if httpDefaultRoot = utils.SplitStringAndGetIndexSafelyBySelfDefineSeq(line, "=", 1); httpDefaultRoot != "" {
 				httpDefaultRoot = strings.Trim(httpDefaultRoot, "\"")
@@ -62,6 +62,10 @@ func (s *Server) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*
 
 	KVMap := platformReadEnvFile(httpDefaultRoot, envMap)
 
+	if utils.IsAbsolutePath(apacheCmd) {
+		// 大概率是windows环境 httpDefaultRoot 不会有用,那个一定是linux用的
+		httpDefaultRoot = filepath.Dir(filepath.Dir(apacheCmd))
+	}
 	err = insertApacheInstance(filepath.Join(httpDefaultRoot, serverDefaultConfig), httpDefaultRoot, &response, KVMap)
 
 	if err != nil {
