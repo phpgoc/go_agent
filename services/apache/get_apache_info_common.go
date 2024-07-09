@@ -35,7 +35,7 @@ func (s *Server) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*
 	var httpDefaultRoot, serverDefaultConfig string
 	for _, line := range strings.Split(apacheV, "\n") {
 		if strings.Contains(line, "HTTPD_ROOT") {
-			if httpDefaultRoot = utils.SplitStringAndGetIndexSafely(line, "=", 1); httpDefaultRoot != "" {
+			if httpDefaultRoot = utils.SplitStringAndGetIndexSafelyBySelfDefineSeq(line, "=", 1); httpDefaultRoot != "" {
 				httpDefaultRoot = strings.Trim(httpDefaultRoot, "\"")
 
 			} else {
@@ -43,7 +43,7 @@ func (s *Server) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*
 			}
 		}
 		if strings.Contains(line, "SERVER_CONFIG_FILE") {
-			if serverDefaultConfig = utils.SplitStringAndGetIndexSafely(line, "=", 1); serverDefaultConfig != "" {
+			if serverDefaultConfig = utils.SplitStringAndGetIndexSafelyBySelfDefineSeq(line, "=", 1); serverDefaultConfig != "" {
 				serverDefaultConfig = strings.Trim(serverDefaultConfig, "\"")
 				//set empty string to split
 			} else {
@@ -210,16 +210,17 @@ func insertApacheInstance(configFileName, httpdRoot string, response *pb.GetApac
 						if len(matched) < 2 {
 							utils.LogError("ErrorLog format error")
 							return
+
+						} else {
+							errLog = matched[1]
 						}
 
-						errLog = matched[1]
 					} else {
-						matchedErrorLog, err := extractMatchesFromLine(line, "ErrorLog")
-						if err != nil {
-							utils.LogError(err.Error())
-							return err
+						errLog = utils.SplitStringAndGetIndexSafelyByDefault(line, 1)
+						if errLog == "" {
+							utils.LogError("ErrorLog format error")
+							return
 						}
-						errLog = matchedErrorLog[0]
 					}
 
 					if !utils.IsAbsolutePath(errLog) {
@@ -251,12 +252,11 @@ func insertApacheInstance(configFileName, httpdRoot string, response *pb.GetApac
 
 						customLog = matched[1]
 					} else {
-						matchedErrorLog, err := extractMatchesFromLine(line, "CustomLog")
-						if err != nil {
-							utils.LogError(err.Error())
-							return err
+						customLog = utils.SplitStringAndGetIndexSafelyByDefault(line, 1)
+						if customLog == "" {
+							utils.LogError("CustomLog format error")
+							return
 						}
-						customLog = matchedErrorLog[0]
 					}
 
 					if !utils.IsAbsolutePath(customLog) {

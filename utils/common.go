@@ -118,8 +118,18 @@ func FormatDuration(uptime time.Duration) string {
 	return result
 }
 
-func SplitStringAndGetIndexSafely(s, sep string, index int) string {
+func SplitStringAndGetIndexSafelyBySelfDefineSeq(s, sep string, index int) string {
 	splitString := strings.Split(s, sep)
+	if len(splitString) <= index {
+		return ""
+	}
+	return splitString[index]
+}
+
+func SplitStringAndGetIndexSafelyByDefault(s string, index int) string {
+
+	re := regexp.MustCompile(`\s+`)
+	splitString := re.Split(s, -1)
 	if len(splitString) <= index {
 		return ""
 	}
