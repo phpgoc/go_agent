@@ -6,6 +6,12 @@ popd >/dev/null || exit 1
 build_image_name="ahsy-go-agent-env"
 p=""
 
+container_cmd=$(bash "$cmd_dir"/private_docker_or_podman.sh)
+if [ -z "$container_cmd" ]; then
+    echo "Neither podman nor docker is installed"
+    exit 1
+fi
+
 while getopts "p:h" opt; do
   case $opt in
     p)
@@ -27,5 +33,5 @@ while getopts "p:h" opt; do
 done
 
 
-docker run --rm -ti -v "$cmd_dir"/../:/go/src/  $p "$build_image_name" bash
+$container_cmd run --rm -ti -v "$cmd_dir"/../:/go/src/  $p "$build_image_name" bash
 

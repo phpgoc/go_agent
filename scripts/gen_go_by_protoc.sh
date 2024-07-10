@@ -10,6 +10,12 @@ project_root=$(realpath "$cmd_dir"/../)
 proto_dir=$project_root/$simple_proto_path
 image_name="ahsy-go-agent-env"
 
+container_cmd=$(bash "$cmd_dir"/private_docker_or_podman.sh)
+if [ -z "$container_cmd" ]; then
+    echo "Neither podman nor docker is installed"
+    exit 1
+fi
+
 while getopts "i:h" opt; do
   case $opt in
     i)
@@ -40,6 +46,6 @@ else
    find_files=$(find "$proto_dir" -name "*.proto"  -exec basename {} \; | grep "$input" |  tr '\n' ' ')
 fi
 echo "gen these: ""$find_files"
-docker run --rm -v "$project_root":/go/src -w /go/src $image_name \
+$container_cmd run --rm -v "$project_root":/go/src -w /go/src $image_name \
   protoc --go_out=/go/src --go-grpc_out=/go/src --proto_path=/go/src/$simple_proto_path $find_files
 echo "generate all go code success"

@@ -1040,7 +1040,7 @@ type GetProcessListRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	WithThreadTimes bool `protobuf:"varint,1,opt,name=withThreadTimes,proto3" json:"withThreadTimes,omitempty"` //一般传递false,很大
+	WithThreadTimes bool `protobuf:"varint,1,opt,name=withThreadTimes,proto3" json:"withThreadTimes,omitempty"` //一般传递false,很大,windows 不支持
 }
 
 func (x *GetProcessListRequest) Reset() {

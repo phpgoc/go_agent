@@ -21,7 +21,9 @@
 - [build_go_agent_exe.sh](build_go_agent_exe.sh): docker生成最终目标exe，生成在bin目录
 
 - [run_dotnet_test.sh](run_dotnet_test.sh) docker运行dotnet测试
-    - 默认会调用docker宿主机上的agent，如果要改，手动修改 [dotnet_tests/GrpcTest/Utils.cs](../dotnet_tests/GrpcTest/Utils.cs)
+    - 默认会调用docker宿主机上的agent
+   - caller的地址需要是172.17.0.1
+  - [../dotnet_tests/CallEverything/Program.cs](../dotnet_tests/CallEverything/Program.cs)
   
 - [run_go_unit_test.sh](run_go_unit_test.sh) docker运行go单元测试
 
