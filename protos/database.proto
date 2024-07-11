@@ -11,14 +11,14 @@ service DatabaseService {
 message ConnectionInfo {
     string username = 1;
     string password = 2;
-    string ip = 3;
+    string host = 3;
     uint32 port = 4;
 }
 
 message MysqlDumpRequest {
     bool skipGrantTables = 1; //确认如果参数错误使用跳过权限重启的方式,true表示不需要用户名密码
-     ConnectionInfo connectionInfo = 2;
-    bool force = 6; //是否强制覆盖
+    optional ConnectionInfo connectionInfo = 2;
+    bool force = 3; //是否强制覆盖,默认是false,为了网络不稳定,grpc断了,sql已经生成了,但是没有返回,这个时候再次请求,可以直接返回
 }
 
 

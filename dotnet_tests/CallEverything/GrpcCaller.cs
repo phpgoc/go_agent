@@ -1,4 +1,6 @@
-﻿namespace CallEverything;
+﻿using AgentProto.Database;
+
+namespace CallEverything;
 
 using AgentProto;
 using Grpc.Net.Client;
@@ -103,5 +105,20 @@ public class GrpcCaller
         Console.WriteLine("call getNginxInfo");
         GetNginxInfoResponse nginxInfo = _callGrpcLib.GetNginxInfo();
         PrintJson(nginxInfo);
+    }
+
+    public void MysqlDump()
+    {
+        Console.WriteLine("call mysqlDump");
+        ConnectionInfo? connectionInfo = new ConnectionInfo
+        {
+            Host = "localhost",
+            Port = 3306,
+            Username = "root",
+            Password = "123456",
+        };
+        // connectionInfo = null;
+        MysqlDumpResponse mysqlDump = _callGrpcLib.MysqlDump(connectionInfo, false);
+        PrintJson(mysqlDump);
     }
 }

@@ -86,6 +86,9 @@ func FormatTimeByTimestamp(timestamp int64) string {
 func FormatTime(timestamp time.Time) string {
 	return timestamp.Format("2006-01-02 15:04:05")
 }
+func FormatTimeForFileName(timestamp time.Time) string {
+	return timestamp.Format("2006-01-02_15-04-05")
+}
 
 func ReadFile(fileName string) (content string, err error) {
 	readBytes, err := os.ReadFile(fileName)

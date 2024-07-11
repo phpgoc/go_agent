@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"go-agent/agent_proto/database"
 	"go-agent/agent_runtime"
 	"go-agent/services/apache"
 	"go-agent/services/file"
@@ -17,6 +18,7 @@ import (
 	"os"
 
 	pb "go-agent/agent_proto"
+	sdatabase "go-agent/services/database"
 
 	"google.golang.org/grpc"
 )
@@ -42,6 +44,7 @@ func main() {
 	pb.RegisterNetworkServiceServer(s, &network.Server{})
 	pb.RegisterFileServiceServer(s, &file.Server{})
 	pb.RegisterNginxServiceServer(s, &nginx.Server{})
+	database.RegisterDatabaseServiceServer(s, &sdatabase.Server{})
 
 	//grpcurl --plaintext localhost:50051 list
 	//增加反射服务,客户端可以通过反射服务发现服务

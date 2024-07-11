@@ -10,10 +10,11 @@ type Server struct {
 }
 
 type ConnectionInfoForKey struct {
-	Username string
-	Password string
-	Ip       string
-	Port     uint32
+	Username        string
+	Password        string
+	Host            string
+	Port            uint32
+	SkipGrantTables bool
 }
 
 type mysqlDumpRequestWrapper struct {
@@ -24,7 +25,7 @@ func (w mysqlDumpRequestWrapper) String() string {
 	var r = w.MysqlDumpRequest
 	var res = fmt.Sprintf("MysqlDumpRequest{SkipGrantTables: %v, Force: %v", r.SkipGrantTables, r.Force)
 	if r.ConnectionInfo != nil {
-		res += fmt.Sprintf(", ConnectionInfo: {Username: %s, Password: %s, Ip: %s, Port: %d}", r.ConnectionInfo.Username, r.ConnectionInfo.Password, r.ConnectionInfo.Ip, r.ConnectionInfo.Port)
+		res += fmt.Sprintf(", ConnectionInfo: {Username: %s, Password: %s, Ip: %s, Port: %d}", r.ConnectionInfo.Username, r.ConnectionInfo.Password, r.ConnectionInfo.Host, r.ConnectionInfo.Port)
 	}
 	res += "}"
 	return res

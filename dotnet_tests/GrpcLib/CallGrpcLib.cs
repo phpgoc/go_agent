@@ -1,5 +1,6 @@
 ﻿
 using AgentProto;
+using AgentProto.Database;
 using Grpc.Core;
 using Grpc.Net.Client;
 using File = System.IO.File;
@@ -126,6 +127,18 @@ namespace GrpcLib
         {
             var client = new NginxService.NginxServiceClient(channel);
             var reply = client.GetNginxInfo(new GetNginxInfoRequest { });
+            return reply;
+        }
+        
+        public MysqlDumpResponse MysqlDump(ConnectionInfo? connectionInfo, bool skip)
+        {
+            var client = new DatabaseService.DatabaseServiceClient(channel);
+            var reply = client.MysqlDump(new MysqlDumpRequest
+            {
+                Force = true,
+                SkipGrantTables = skip,
+                ConnectionInfo = connectionInfo
+            });
             return reply;
         }
     }
