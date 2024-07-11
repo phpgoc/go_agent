@@ -13,11 +13,11 @@ class Program
 //        GrpcCaller caller = new GrpcCaller("http://172.17.0.1:50051");
 // GrpcCaller caller = new GrpcCaller("http://192.168.31.244:50051");
         
-//         caller.CallHelloWorld();
-         // caller.CallGetApacheInfo();
+         caller.CallHelloWorld();
+          caller.CallGetApacheInfo();
          caller.CallGetSysInfo();
          caller.CallGetProcessList(true);
-         caller.CallGetUserList();
+//         caller.CallGetUserList();
 //         caller.CallGetShellHistory("yangdianqing");
 //         caller.CallGetShellHistory("");
 //         caller.CallGetNetworkInterface();
@@ -27,7 +27,7 @@ class Program
 //         caller.CallGetNetworkBindList(Protocol.All, "lo");
 //         caller.CallGetNetworkBindList(Protocol.All, "Loopback Pseudo-Interface 1");
 //         await caller.CallFileDownload("/etc/hosts", "D:/hosts.txt");
-        // caller.GetNginxInfo();
+         caller.GetNginxInfo();
 
     }
 }

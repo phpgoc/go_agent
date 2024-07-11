@@ -11,4 +11,4 @@ if [ -z "$container_cmd" ]; then
     exit 1
 fi
 
-$container_cmd run --rm -v "$cmd_dir/../":/app -w /app/dotnet_tests/CallEverything $image_name dotnet run
+$container_cmd run --rm -v "$cmd_dir/../":/app --network=host -w /app/dotnet_tests/CallEverything $image_name dotnet run

@@ -24,17 +24,17 @@
 
 # 建立开发环境
 
-1. 安装docker,docker-buildx
+1. 安装(docker,docker-buildx) or (podman)
 2. <div id="step2">执行scripts/build-go_env.sh</div>
 
     - 可能遇到docker hub网络问题
     - 下载google的go包依赖可能需要翻墙
-    - 可以通过传递docker image的方式完成这步
+    - 可以通过传递容器 image的方式完成这步
 3. <div id="step3">执行scripts/build_dotnet_env.sh</div>
 
     - dotnet是测试用的, 不是必须执行
     - 可能遇到docker hub网络问题
-    - 可以通过传递docker image的方式完成这步
+    - 可以通过传递容器 image的方式完成这步
 
 # 编译
 
@@ -62,7 +62,8 @@
    - go run cmd/go-agent/main.go
 7. 执行dotnet测试 scripts/run_dotnet_test.sh
    - 需要预先完成 [建立开发环境 3.](#step3)
-   - caller的地址需要是172.17.0.1
+   - docker caller 的地址需要是172.17.0.1
+   - podman caller 的地址需要是localhost
    - [dotnet_tests/CallEverything/Program.cs](dotnet_tests/CallEverything/Program.cs)
    - 机器的第一次执行可能会较慢,需要下载dotnet的依赖包
    - dotnet的依赖下载一般不会有问题
