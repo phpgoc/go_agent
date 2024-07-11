@@ -10,6 +10,7 @@ import (
 	"go-agent/utils"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 )
@@ -88,7 +89,13 @@ func doDump(db *sql.DB, key *ConnectionInfoForKey, config *mysql.Config) string 
 
 		}
 	}(f)
+	//跳过基础4库
+	//mysql,information_schema,performance_schema,sys
+	basisDatabases := []string{"mysql", "information_schema", "performance_schema", "sys"}
 	for _, database := range databases {
+		if slices.Contains(basisDatabases, database) {
+			continue
+		}
 		// _, err := db.Exec("USE " + databaseName)
 		config.DBName = database
 		dsn := config.FormatDSN()
