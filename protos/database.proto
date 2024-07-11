@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option go_package = "agent_proto/database";
+
+package agent_proto.database;
+
+service DatabaseService {
+    rpc MysqlDump(MysqlDumpRequest) returns ( MysqlDumpResponse) {}
+}
+
+message ConnectionInfo {
+    string username = 1;
+    string password = 2;
+    string ip = 3;
+    uint32 port = 4;
+}
+
+message MysqlDumpRequest {
+    bool skipGrantTables = 1; //确认如果参数错误使用跳过权限重启的方式,true表示不需要用户名密码
+     ConnectionInfo connectionInfo = 2;
+    bool force = 6; //是否强制覆盖
+}
+
+
+message MysqlDumpResponse {
+    string message = 1;
+    string filepath = 2;
+}
