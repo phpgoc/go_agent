@@ -66,8 +66,10 @@ func (s *Server) GetProcessList(_ context.Context, req *pb.GetProcessListRequest
 				Stack: utils.FormatBytes(processMemorySource.Stack),
 			}
 		}
+
 		if req.WithThreadTimes {
 			threadTimes, _ := p.Threads()
+			//windows传递这个参数也取不到,threadTimes是nil
 			for tid, threadTimeInfo := range threadTimes {
 				thisProcessInfo.Threads = append(thisProcessInfo.Threads, &pb.ThreadTimesStat{
 					Tid:     tid,

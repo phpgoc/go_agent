@@ -62,6 +62,8 @@ func platformUserList(response *pb.UserListResponse) error {
 		}
 		lastLoginSource, err := utils.RunCmd("lastlog -u " + arr[0])
 		// lastlog命令不一定存在
+		//ubuntu 23,24,centos7, centos9stream 都有
+		//opensuse上没有
 		if err != nil {
 			utils.LogError(err.Error())
 			continue

@@ -21,6 +21,6 @@ func (s *Server) GetShellHistory(_ context.Context, req *pb.GetShellHistoryReque
 			count += len(shellHistory.ListByCommand)
 		}
 	}
-	utils.LogInfo(fmt.Sprintf("history count: %v", count))
+	utils.LogInfo(fmt.Sprintf("GetShellHistory history count: %d", count))
 	return res, nil
 }
