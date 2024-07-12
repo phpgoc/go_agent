@@ -130,12 +130,12 @@ namespace GrpcLib
             return reply;
         }
         
-        public MysqlDumpResponse MysqlDump(ConnectionInfo? connectionInfo, bool skip)
+        public MysqlDumpResponse MysqlDump(ConnectionInfo? connectionInfo, bool skip,bool force )
         {
             var client = new DatabaseService.DatabaseServiceClient(channel);
             var reply = client.MysqlDump(new MysqlDumpRequest
             {
-                Force = true,
+                Force = force,
                 SkipGrantTables = skip,
                 ConnectionInfo = connectionInfo
             });

@@ -118,7 +118,7 @@ public class GrpcCaller
             Password = "123456",
         };
         // connectionInfo = null;
-        MysqlDumpResponse mysqlDump = _callGrpcLib.MysqlDump(connectionInfo, false);
+        MysqlDumpResponse mysqlDump = _callGrpcLib.MysqlDump(connectionInfo, true,false);
         PrintJson(mysqlDump);
     }
 }

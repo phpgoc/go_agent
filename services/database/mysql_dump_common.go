@@ -17,20 +17,23 @@ import (
 
 var connectionInfoKey2path = make(map[ConnectionInfoForKey]string)
 
+var defaultConnectionInfo = ConnectionInfoForKey{
+	Username:        "root",
+	Password:        "",
+	Host:            "localhost",
+	Port:            3306,
+	SkipGrantTables: true,
+}
+
 func (s *Server) MysqlDump(_ context.Context, request *pb.MysqlDumpRequest) (*pb.MysqlDumpResponse, error) {
 	response := &pb.MysqlDumpResponse{}
 	//var err error = nil
 	utils.LogInfo(fmt.Sprintf("Received request: %s", mysqlDumpRequestWrapper{request}))
 	//default 如果request传递了,覆盖
-	var key = ConnectionInfoForKey{
-		Username:        "root",
-		Password:        "123456",
-		Host:            "localhost",
-		Port:            3306,
-		SkipGrantTables: request.SkipGrantTables,
-	}
+	var key = defaultConnectionInfo
+	key.SkipGrantTables = request.SkipGrantTables
 
-	//不跳过验证,还不传ConnectionInfo就全用默认值,连不上就返回
+	//不跳过验证,还不传ConnectionInfo 就全用默认值,连不上就返回
 	if !request.SkipGrantTables && request.ConnectionInfo != nil {
 		key.Host = request.ConnectionInfo.Host
 		key.Port = request.ConnectionInfo.Port
@@ -48,14 +51,20 @@ func (s *Server) MysqlDump(_ context.Context, request *pb.MysqlDumpRequest) (*pb
 	config := mysql.NewConfig()
 
 	config.User = key.Username
-	config.Passwd = key.Password
+	if key.Password != "" {
+		config.Passwd = key.Password
+	}
 	config.Net = "tcp"
 	config.Addr = fmt.Sprintf("%s:%d", key.Host, key.Port)
-
+	utils.LogInfo(config.FormatDSN())
 	var db, _ = sql.Open("mysql", config.FormatDSN())
 
+	if connectionInfoKey2path[key] != "" && !request.Force {
+		response.Filepath = connectionInfoKey2path[key]
+		return response, nil
+	}
 	if request.SkipGrantTables {
-
+		platformRestartMysqlSkipGrantTables()
 	} else {
 		if !canConnect(db) {
 			response.Message = fmt.Sprintf("Cannot connect to %s:%d with username %s and password %s", key.Host, key.Port, key.Username, key.Password)
@@ -65,7 +74,14 @@ func (s *Server) MysqlDump(_ context.Context, request *pb.MysqlDumpRequest) (*pb
 			return response, nil
 		}
 	}
+
 	file := doDump(db, &key, config)
+	if request.SkipGrantTables {
+		//platformRestartMysqlDefault()
+	}
+	//if file != "" {
+	connectionInfoKey2path[key] = file
+	//}
 	response.Filepath = file
 	return response, nil
 }
