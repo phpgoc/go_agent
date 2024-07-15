@@ -24,6 +24,7 @@ var defaultConnectionInfo = ConnectionInfoForKey{
 	Port:            3306,
 	SkipGrantTables: true,
 }
+var linkTargetPath string
 
 func (s *Server) MysqlDump(_ context.Context, request *pb.MysqlDumpRequest) (*pb.MysqlDumpResponse, error) {
 	response := &pb.MysqlDumpResponse{}
@@ -310,7 +311,57 @@ func escapeString(value string) string {
 	return strings.ReplaceAll(value, "'", "''")
 }
 
-func copyBakAndReplaceWithSkipGrantTables(origin, bak string) {
+func copyBakAndReplaceWithSkipGrantTables(origin, bak string) error {
 
-	//copy
+	sourceFileContent, err := utils.ReadFile(originalMysqlConfig)
+
+	//判断是否是软链接
+	linkTargetPath, err = os.Readlink(originalMysqlConfig)
+	if err != nil {
+		//copy
+		err = utils.CopyFile(originalMysqlConfig, bakMysqlConfig)
+	} else {
+		//unlink
+		err := os.Remove(originalMysqlConfig)
+		if err != nil {
+			utils.LogError(fmt.Sprintf("Failed to remove link %s: %s", originalMysqlConfig, err))
+		}
+	}
+
+	newFile, _ := os.OpenFile(originalMysqlConfig, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+
+	defer func(newFile *os.File) {
+		err := newFile.Close()
+		if err != nil {
+
+		}
+	}(newFile)
+
+	foundMysqld := false
+	updatePort := false
+
+	for _, line := range strings.Split(sourceFileContent, "\n") {
+
+		// Check if we're in the [mysqld] section
+		if strings.TrimSpace(line) == "[mysqld]" {
+			foundMysqld = true
+			line += "\n skip-grant-tables"
+		} else if foundMysqld && strings.Contains(line, "port") {
+			line = "port = 3306"
+			updatePort = true
+		}
+
+		_, _ = newFile.WriteString(line + "\n")
+
+	}
+
+	// If we didn't find the bind-address line, add it under the [mysqld] section
+
+	if foundMysqld && !updatePort {
+		_, err := newFile.WriteString("port = 3306\n")
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
