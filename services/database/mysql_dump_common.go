@@ -3,12 +3,14 @@ package database
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	pb "go-agent/agent_proto/database"
 	"go-agent/agent_runtime"
 	"go-agent/utils"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -20,7 +22,7 @@ var connectionInfoKey2path = make(map[ConnectionInfoForKey]string)
 var defaultConnectionInfo = ConnectionInfoForKey{
 	Username:        "root",
 	Password:        "",
-	Host:            "localhost",
+	Host:            "127.0.0.1",
 	Port:            3306,
 	SkipGrantTables: true,
 }
@@ -51,39 +53,64 @@ func (s *Server) MysqlDump(_ context.Context, request *pb.MysqlDumpRequest) (*pb
 	config := mysql.NewConfig()
 
 	config.User = key.Username
-	if key.Password != "" {
-		config.Passwd = key.Password
-	}
-	config.Net = "tcp"
+	config.Passwd = key.Password
 	config.Addr = fmt.Sprintf("%s:%d", key.Host, key.Port)
-	utils.LogInfo(config.FormatDSN())
+	config.Net = "tcp"
+	config.DBName = "mysql"
+
+	utils.LogWarn(config.FormatDSN())
 	var db, _ = sql.Open("mysql", config.FormatDSN())
 
 	if connectionInfoKey2path[key] != "" && !request.Force {
 		response.Filepath = connectionInfoKey2path[key]
 		return response, nil
 	}
+	var outFile string
+	var err error
 	if request.SkipGrantTables {
-		platformRestartMysqlSkipGrantTables()
+		err = platformRestartMysqlSkipGrantTables()
+		if err != nil {
+			return nil, err
+		}
+
+		outFile, err = doUseMysqldump()
+		if err != nil {
+			response.Message = err.Error()
+		}
+		err = platformRestartMysqlDefault()
+		if err != nil {
+			utils.LogError(err.Error())
+		}
+
 	} else {
 		if !canConnect(db) {
 			response.Message = fmt.Sprintf("Cannot connect to %s:%d with username %s and password %s", key.Host, key.Port, key.Username, key.Password)
 			// log err 暴露的信息有点多
-
 			utils.LogError(response.Message)
 			return response, nil
 		}
+		outFile = doDump(db, &key, config)
 	}
 
-	file := doDump(db, &key, config)
-	if request.SkipGrantTables {
-		//platformRestartMysqlDefault()
-	}
-	//if file != "" {
-	connectionInfoKey2path[key] = file
-	//}
-	response.Filepath = file
+	// 失败file是空,这个赋值也没问题
+	connectionInfoKey2path[key] = outFile
+
+	response.Filepath = outFile
 	return response, nil
+}
+
+func doUseMysqldump() (string, error) {
+	mysqlDumpCmd, err := exec.LookPath("mysqldump")
+	if _, err := os.Stat(mysqlDumpCmd); os.IsNotExist(err) {
+		utils.LogError("mysqldump not found")
+		return "", errors.New("mysqldump not found")
+	}
+	file := sqlName("mysqldump")
+	_, err = utils.RunCmd(fmt.Sprintf("%s --all-databases > %s", mysqlDumpCmd, file))
+	if err != nil {
+		utils.LogError(err.Error())
+	}
+	return file, err
 }
 
 func doDump(db *sql.DB, key *ConnectionInfoForKey, config *mysql.Config) string {
@@ -92,7 +119,7 @@ func doDump(db *sql.DB, key *ConnectionInfoForKey, config *mysql.Config) string 
 	if err != nil {
 		return ""
 	}
-	fileName := filepath.Join(agent_runtime.OutDir, key.Host+utils.FormatTimeForFileName(time.Now())+".sql")
+	fileName := sqlName(key.Host)
 	databases, err := getDatabases(db)
 	if err != nil {
 		utils.LogError(err.Error())
@@ -155,7 +182,12 @@ func doDump(db *sql.DB, key *ConnectionInfoForKey, config *mysql.Config) string 
 	return fileName
 }
 
+func sqlName(host string) string {
+	return filepath.Join(agent_runtime.OutDir, host+"_"+utils.FormatTimeForFileName(time.Now())+".sql")
+}
+
 func canConnect(db *sql.DB) bool {
+
 	if err := db.Ping(); err != nil {
 		utils.LogError(err.Error())
 		return false
