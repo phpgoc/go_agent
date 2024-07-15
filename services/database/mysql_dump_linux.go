@@ -2,10 +2,12 @@ package database
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"go-agent/utils"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
@@ -15,7 +17,7 @@ var originalMysqlConfig = "/etc/mysql/my.cnf"
 var bakMysqlConfig = "/etc/mysql/cnf.bak"
 var linkTargetPath string
 
-func platformRestartMysqlSkipGrantTables() error {
+func platformRestartMysqlSkipGrantTables(_ string) error {
 
 	//在 /etc/mysql/ 目录下找到包含[mysqld]的配置文件
 
@@ -34,10 +36,13 @@ func platformRestartMysqlSkipGrantTables() error {
 	linkTargetPath, err = os.Readlink(originalMysqlConfig)
 	if err != nil {
 		//copy
-		_, err = utils.RunCmd(fmt.Sprintf("cp %s %s", originalMysqlConfig, bakMysqlConfig))
+		err = utils.CopyFile(originalMysqlConfig, bakMysqlConfig)
 	} else {
 		//unlink
-		_, err = utils.RunCmd(fmt.Sprintf("rm %s", originalMysqlConfig))
+		err := os.Remove(originalMysqlConfig)
+		if err != nil {
+			utils.LogError(fmt.Sprintf("Failed to remove link %s: %s", originalMysqlConfig, err))
+		}
 	}
 
 	newFile, _ := os.OpenFile(originalMysqlConfig, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
@@ -97,12 +102,33 @@ func platformRestartMysqlSkipGrantTables() error {
 	return utils.WaitUntil("systemctl status mysql", "active", 1, 0)
 }
 
+func platformUseMysqldump(mysqldCmd string) (string, error) {
+	mysqlDumpCmd, err := exec.LookPath("mysqldump")
+	if _, err := os.Stat(mysqlDumpCmd); os.IsNotExist(err) {
+		mysqlDumpCmd = filepath.Join(filepath.Dir(mysqldCmd), "mysqldump")
+		if _, err := os.Stat(mysqlDumpCmd); os.IsNotExist(err) {
+			mysqlDumpCmd = ""
+			utils.LogError("mysqldump not found")
+			return "", errors.New("mysqldump not found")
+		}
+	}
+	file := sqlName("mysqldump")
+	_, err = utils.RunCmd(fmt.Sprintf("%s --all-databases > %s", mysqlDumpCmd, file))
+	if err != nil {
+		utils.LogError(err.Error())
+	}
+	return file, err
+}
+
 func platformRestartMysqlDefault() (err error) {
 	if linkTargetPath == "" {
-		_, err = utils.RunCmd(fmt.Sprintf("mv %s %s", bakMysqlConfig, originalMysqlConfig))
+		err = utils.MoveFile(bakMysqlConfig, originalMysqlConfig)
 	} else {
-		_, err = utils.RunCmd(fmt.Sprintf("rm %s", originalMysqlConfig))
-		_, err = utils.RunCmd(fmt.Sprintf("ln -s %s %s", linkTargetPath, originalMysqlConfig))
+		err = os.Remove(originalMysqlConfig)
+		err := os.Link(linkTargetPath, originalMysqlConfig)
+		if err != nil {
+			utils.LogError(fmt.Sprintf("Failed to link %s to %s: %s", linkTargetPath, originalMysqlConfig, err))
+		}
 	}
 	_, err = utils.RunCmd("systemctl restart mysql")
 	if err != nil {
@@ -133,7 +159,6 @@ func findMysqldConfig(dirPath string) (string, error) {
 
 		f, err := os.Open(filePath)
 		if err != nil {
-			_ = f.Close()
 			continue // Skip files that cannot be opened
 		}
 
