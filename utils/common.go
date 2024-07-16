@@ -41,6 +41,13 @@ func LogError(log string) {
 	writeLogFile("ERROR", log, 2)
 }
 
+func LogErrorThrough(err *error) error {
+	if *err != nil {
+		LogErrorWithCallerLevel((*err).Error(), 3)
+	}
+	return *err
+}
+
 func LogErrorWithCallerLevel(log string, callerLevel int) {
 	writeLogFile("ERROR", log, callerLevel)
 }

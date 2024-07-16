@@ -4,7 +4,7 @@
 // - protoc             v3.21.12
 // source: database.proto
 
-package database
+package agent_proto
 
 import (
 	context "context"
@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	DatabaseService_MysqlDump_FullMethodName = "/agent_proto.database.DatabaseService/MysqlDump"
+	DatabaseService_MysqlDump_FullMethodName = "/agent_proto.DatabaseService/MysqlDump"
 )
 
 // DatabaseServiceClient is the client API for DatabaseService service.
@@ -97,7 +97,7 @@ func _DatabaseService_MysqlDump_Handler(srv interface{}, ctx context.Context, de
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var DatabaseService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "agent_proto.database.DatabaseService",
+	ServiceName: "agent_proto.DatabaseService",
 	HandlerType: (*DatabaseServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

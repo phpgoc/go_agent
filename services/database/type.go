@@ -2,7 +2,7 @@ package database
 
 import (
 	"fmt"
-	pb "go-agent/agent_proto/database"
+	pb "go-agent/agent_proto"
 )
 
 type Server struct {

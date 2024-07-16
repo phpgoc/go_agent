@@ -1,6 +1,5 @@
 ﻿
 using AgentProto;
-using AgentProto.Database;
 using Grpc.Core;
 using Grpc.Net.Client;
 using File = System.IO.File;

@@ -1,8 +1,10 @@
 syntax = "proto3";
 
-option go_package = "agent_proto/database";
+import "response_code.proto";
 
-package agent_proto.database;
+option go_package = "./agent_proto";
+
+package agent_proto;
 
 service DatabaseService {
     rpc MysqlDump(MysqlDumpRequest) returns ( MysqlDumpResponse) {}
@@ -24,5 +26,6 @@ message MysqlDumpRequest {
 
 message MysqlDumpResponse {
     string message = 1;
-    string filepath = 2;
+    ResponseCode code = 2;
+    string filepath = 3;
 }

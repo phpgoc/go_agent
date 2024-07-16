@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/go-sql-driver/mysql"
-	pb "go-agent/agent_proto/database"
+	pb "go-agent/agent_proto"
 	"go-agent/agent_runtime"
 	"go-agent/utils"
 	"os"
@@ -44,9 +44,7 @@ func (s *Server) MysqlDump(_ context.Context, request *pb.MysqlDumpRequest) (*pb
 
 	mysqldCmd, _ := utils.FindCommandFromPathAndProcessByMatchStringArray([]string{"mysqld"})
 	if mysqldCmd == "" {
-		response.Message = "mysqld not found"
-		utils.LogError(response.Message)
-		return response, nil
+		return utils.SetResponseErrorAndLogMessageGeneric(response, "mysqld not found", pb.ResponseCode_UNSUPPORTED)
 	}
 
 	if connectionInfoKey2path[key] != "" && !request.Force {
@@ -59,7 +57,10 @@ func (s *Server) MysqlDump(_ context.Context, request *pb.MysqlDumpRequest) (*pb
 		err = platformRestartMysqlSkipGrantTables(mysqldCmd)
 		if err != nil {
 			response.Message = err.Error()
+			response.Code = pb.ResponseCode_UNKNOWN_SERVER_ERROR
 			return response, nil
+			//不用下边的是因为已经在platformRestartMysqlSkipGrantTables里面打印了
+			//return utils.SetResponseErrorAndLogMessageGeneric(response, err.Error(), pb.ResponseCode_UNKNOWN_SERVER_ERROR)
 		}
 
 		outFile, err = platformUseMysqldump(mysqldCmd)
@@ -84,43 +85,46 @@ func (s *Server) MysqlDump(_ context.Context, request *pb.MysqlDumpRequest) (*pb
 		utils.LogWarn(config.FormatDSN())
 
 		if !canConnect(db) {
-			response.Message = fmt.Sprintf("Cannot connect to %s:%d with username %s and password %s", key.Host, key.Port, key.Username, key.Password)
-			// log err 暴露的信息有点多
-			utils.LogError(response.Message)
-			return response, nil
+
+			return utils.SetResponseErrorAndLogMessageGeneric(response, fmt.Sprintf("Cannot connect to %s:%d with username %s and password %s", key.Host, key.Port, key.Username, key.Password),
+				pb.ResponseCode_UNKNOWN_SERVER_ERROR)
 		}
-		outFile = doDump(db, &key, config)
+		outFile, err = doDump(db, &key, config)
 	}
 
 	// 失败file是空,这个赋值也没问题
 	connectionInfoKey2path[key] = outFile
 
 	response.Filepath = outFile
+	if err != nil {
+		response.Message = err.Error()
+		response.Code = pb.ResponseCode_UNKNOWN_SERVER_ERROR
+	}
 	return response, nil
 }
 
-func doDump(db *sql.DB, key *ConnectionInfoForKey, config *mysql.Config) string {
+func doDump(db *sql.DB, key *ConnectionInfoForKey, config *mysql.Config) (string, error) {
 
 	err := os.MkdirAll(agent_runtime.OutDir, 0700)
 	if err != nil {
-		return ""
+		return "", utils.LogErrorThrough(&err)
 	}
 	fileName := sqlName(key.Host)
 	databases, err := getDatabases(db)
 	if err != nil {
-		utils.LogError(err.Error())
-		return ""
+		return "", utils.LogErrorThrough(&err)
 	}
 	f, _ := os.Create(fileName)
 	defer func(f *os.File) {
-		err := f.Close()
+		err = f.Close()
 		if err != nil {
-
+			utils.LogError(err.Error())
 		}
 	}(f)
 	//跳过基础4库
 	//mysql,information_schema,performance_schema,sys
 	basisDatabases := []string{"mysql", "information_schema", "performance_schema", "sys"}
+
 	for _, database := range databases {
 		if slices.Contains(basisDatabases, database) {
 			continue
@@ -128,9 +132,10 @@ func doDump(db *sql.DB, key *ConnectionInfoForKey, config *mysql.Config) string 
 		// _, err := db.Exec("USE " + databaseName)
 		config.DBName = database
 		dsn := config.FormatDSN()
+
 		eachDb, err := sql.Open("mysql", dsn)
 		if err != nil {
-			utils.LogError(err.Error())
+			utils.LogWarn(err.Error())
 			continue
 		}
 		_, err = f.WriteString(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS `%s`;\n", database))
@@ -138,9 +143,9 @@ func doDump(db *sql.DB, key *ConnectionInfoForKey, config *mysql.Config) string 
 		tables, err := getTables(eachDb)
 		if err != nil {
 			utils.LogError(err.Error())
-			err := eachDb.Close()
+			err = eachDb.Close()
 			if err != nil {
-				return ""
+				return "", utils.LogErrorThrough(&err)
 			} // 在执行continue之前关闭数据库连接
 			continue
 		}
@@ -149,9 +154,9 @@ func doDump(db *sql.DB, key *ConnectionInfoForKey, config *mysql.Config) string 
 
 		// Dump each table
 		for _, table := range tables {
-			err := dumpCreateTableSQL(eachDb, table, f)
+			err = dumpCreateTableSQL(eachDb, table, f)
 			if err != nil {
-				return ""
+				return "", utils.LogErrorThrough(&err)
 			}
 			err = dumpTable(eachDb, table, f)
 			if err != nil {
@@ -161,11 +166,11 @@ func doDump(db *sql.DB, key *ConnectionInfoForKey, config *mysql.Config) string 
 
 		err = eachDb.Close()
 		if err != nil {
-			return ""
+			return "", utils.LogErrorThrough(&err)
 		}
 	}
 
-	return fileName
+	return fileName, nil
 }
 
 func sqlName(host string) string {
@@ -190,7 +195,7 @@ func getDatabases(db *sql.DB) ([]string, error) {
 	defer func(rows *sql.Rows) {
 		err := rows.Close()
 		if err != nil {
-
+			utils.LogWarn(err.Error())
 		}
 	}(rows)
 
@@ -235,6 +240,7 @@ func dumpCreateTableSQL(db *sql.DB, tableName string, f *os.File) error {
 	row := db.QueryRow(query)
 	var tableNameReturned, sqlStatement string
 	if err := row.Scan(&tableNameReturned, &sqlStatement); err != nil {
+		utils.LogError(err.Error())
 		return err
 	}
 	_, err := f.WriteString(fmt.Sprintf("%s;\n", sqlStatement))
@@ -249,13 +255,13 @@ func dumpTable(db *sql.DB, tableName string, file *os.File) error {
 	defer func(rows *sql.Rows) {
 		err := rows.Close()
 		if err != nil {
-
+			utils.LogError(err.Error())
 		}
 	}(rows)
 
 	columns, err := rows.Columns()
 	if err != nil {
-		return err
+		return utils.LogErrorThrough(&err)
 	}
 
 	var buffer [][]sql.RawBytes // Buffer for rows
@@ -271,13 +277,13 @@ func dumpTable(db *sql.DB, tableName string, file *os.File) error {
 		}
 
 		if err := rows.Scan(scanArgs...); err != nil {
-			return err
+			return utils.LogErrorThrough(&err)
 		}
 
 		buffer = append(buffer, values)
 		if len(buffer) >= 1000 {
 			if err := writeInserts(tableName, columns, buffer, file); err != nil {
-				return err
+				return utils.LogErrorThrough(&err)
 			}
 			buffer = buffer[:0] // Clear the buffer
 		}
@@ -286,7 +292,7 @@ func dumpTable(db *sql.DB, tableName string, file *os.File) error {
 	// Insert any remaining rows
 	if len(buffer) > 0 {
 		if err := writeInserts(tableName, columns, buffer, file); err != nil {
-			return err
+			return utils.LogErrorThrough(&err)
 		}
 	}
 
@@ -311,57 +317,50 @@ func escapeString(value string) string {
 	return strings.ReplaceAll(value, "'", "''")
 }
 
-func copyBakAndReplaceWithSkipGrantTables(origin, bak string) error {
+func copyBakAndReplaceWithSkipGrantTables(original, bak string) error {
 
-	sourceFileContent, err := utils.ReadFile(originalMysqlConfig)
+	sourceFileContent, err := utils.ReadFile(original)
 
 	//判断是否是软链接
-	linkTargetPath, err = os.Readlink(originalMysqlConfig)
+	linkTargetPath, err = os.Readlink(original)
 	if err != nil {
 		//copy
-		err = utils.CopyFile(originalMysqlConfig, bakMysqlConfig)
+		err = utils.CopyFile(original, bak)
 	} else {
 		//unlink
-		err := os.Remove(originalMysqlConfig)
+		err = os.Remove(original)
 		if err != nil {
-			utils.LogError(fmt.Sprintf("Failed to remove link %s: %s", originalMysqlConfig, err))
+			utils.LogError(fmt.Sprintf("Failed to remove link %s: %s", original, err))
 		}
 	}
+	if err != nil {
+		return err
+	}
 
-	newFile, _ := os.OpenFile(originalMysqlConfig, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	newFile, _ := os.OpenFile(original, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 
 	defer func(newFile *os.File) {
-		err := newFile.Close()
+		err = newFile.Close()
 		if err != nil {
-
+			utils.LogError(err.Error())
 		}
 	}(newFile)
 
 	foundMysqld := false
-	updatePort := false
-
 	for _, line := range strings.Split(sourceFileContent, "\n") {
 
 		// Check if we're in the [mysqld] section
 		if strings.TrimSpace(line) == "[mysqld]" {
 			foundMysqld = true
 			line += "\n skip-grant-tables"
-		} else if foundMysqld && strings.Contains(line, "port") {
-			line = "port = 3306"
-			updatePort = true
 		}
-
 		_, _ = newFile.WriteString(line + "\n")
 
 	}
-
-	// If we didn't find the bind-address line, add it under the [mysqld] section
-
-	if foundMysqld && !updatePort {
-		_, err := newFile.WriteString("port = 3306\n")
-		if err != nil {
-			return err
-		}
+	if !foundMysqld {
+		//linux不会出现这种情况,因为这个文件是通过find [mysqld]找到的
+		return fmt.Errorf("no [mysqld] section found in %s", original)
 	}
+
 	return nil
 }

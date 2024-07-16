@@ -16,20 +16,22 @@ import (
 var originalMysqlConfig = "/etc/mysql/my.cnf"
 var bakMysqlConfig = "/etc/mysql/cnf.bak"
 
-func platformRestartMysqlSkipGrantTables(_ string) error {
+func platformRestartMysqlSkipGrantTables(_ string) (err error) {
 
 	//在 /etc/mysql/ 目录下找到包含[mysqld]的配置文件
 
 	_ = os.Remove(bakMysqlConfig)
-	originalMysqlConfig, err := findMysqldConfig("/etc/mysql")
+	originalMysqlConfig, err = findMysqldConfig("/etc/mysql")
 	if err != nil {
 		utils.LogError(fmt.Sprintf("Failed to find [mysqld] config in /etc/mysql: %s", err))
 		return err
-
 	}
 	utils.LogInfo(fmt.Sprintf("Found [mysqld] config in %s", originalMysqlConfig))
 
-	copyBakAndReplaceWithSkipGrantTables(originalMysqlConfig, bakMysqlConfig)
+	err = copyBakAndReplaceWithSkipGrantTables(originalMysqlConfig, bakMysqlConfig)
+	if err != nil {
+		return err
+	}
 
 	_, err = utils.RunCmd("systemctl restart mysql")
 	if err != nil {
