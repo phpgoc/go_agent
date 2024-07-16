@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	pb "go-agent/agent_proto"
 	"go-agent/agent_runtime"
 	"go-agent/utils"
 	"os"
@@ -79,14 +80,14 @@ func platformRestartMysqlSkipGrantTables(mysqldCmd string) (err error) {
 	return err
 }
 
-func platformUseMysqldump(mysqldCmd string) (string, error) {
+func platformUseMysqldump(mysqldCmd string) (string, pb.ResponseCode) {
 	mysqlDumpCmd, err := exec.LookPath("mysqldump.exe")
 	if _, err := os.Stat(mysqlDumpCmd); os.IsNotExist(err) {
 		mysqlDumpCmd = filepath.Join(filepath.Dir(mysqldCmd), "mysqldump.exe")
 		if _, err := os.Stat(mysqlDumpCmd); os.IsNotExist(err) {
 			mysqlDumpCmd = ""
 			utils.LogError("mysqldump not found")
-			return "", errors.New("mysqldump not found")
+			return "", pb.ResponseCode_SERVER_CONFIG_ERROR
 		}
 	}
 	file := sqlName("mysqldump")
@@ -94,7 +95,7 @@ func platformUseMysqldump(mysqldCmd string) (string, error) {
 	outputFile, err := os.Create(file)
 	if err != nil {
 		utils.LogError(fmt.Sprintf("Failed to create output file: %s", err))
-		return "", err
+		return "", pb.ResponseCode_UNKNOWN_SERVER_ERROR
 	}
 	defer outputFile.Close()
 
@@ -108,11 +109,11 @@ func platformUseMysqldump(mysqldCmd string) (string, error) {
 	err = cmd.Run()
 	if err != nil {
 		utils.LogError(fmt.Sprintf("Failed to execute mysqldump command: %s", err))
-		return "", err
+		return "", pb.ResponseCode_UNKNOWN_SERVER_ERROR
 	}
 
 	utils.LogWarn(fmt.Sprintf(`Executed: "%s" --all-databases > "%s"`, mysqlDumpCmd, file))
-	return file, nil
+	return file, pb.ResponseCode_OK
 }
 
 func platformRestartMysqlDefault() (err error) {

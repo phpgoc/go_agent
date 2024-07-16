@@ -62,14 +62,17 @@ func (s *Server) MysqlDump(_ context.Context, request *pb.MysqlDumpRequest) (*pb
 			//不用下边的是因为已经在platformRestartMysqlSkipGrantTables里面打印了
 			//return utils.SetResponseErrorAndLogMessageGeneric(response, err.Error(), pb.ResponseCode_UNKNOWN_SERVER_ERROR)
 		}
+		var code pb.ResponseCode
+		outFile, code = platformUseMysqldump(mysqldCmd)
+		if code != pb.ResponseCode_OK {
 
-		outFile, err = platformUseMysqldump(mysqldCmd)
-		if err != nil {
 			response.Message = err.Error()
+			response.Code = code
+			return response, nil
 		}
 		err = platformRestartMysqlDefault()
 		if err != nil {
-			utils.LogError(err.Error())
+			return utils.SetResponseErrorAndLogMessageGeneric(response, err.Error(), pb.ResponseCode_UNKNOWN_SERVER_ERROR)
 		}
 
 	} else {

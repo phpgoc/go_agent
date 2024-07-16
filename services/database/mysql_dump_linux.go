@@ -2,8 +2,8 @@ package database
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
+	pb "go-agent/agent_proto"
 	"go-agent/utils"
 	"io/fs"
 	"os"
@@ -44,22 +44,24 @@ func platformRestartMysqlSkipGrantTables(_ string) (err error) {
 	return utils.WaitUntil("systemctl status mysql", "active", 1, 0)
 }
 
-func platformUseMysqldump(mysqldCmd string) (string, error) {
+func platformUseMysqldump(mysqldCmd string) (string, pb.ResponseCode) {
 	mysqlDumpCmd, err := exec.LookPath("mysqldump")
 	if _, err := os.Stat(mysqlDumpCmd); os.IsNotExist(err) {
 		mysqlDumpCmd = filepath.Join(filepath.Dir(mysqldCmd), "mysqldump")
 		if _, err := os.Stat(mysqlDumpCmd); os.IsNotExist(err) {
-			mysqlDumpCmd = ""
 			utils.LogError("mysqldump not found")
-			return "", errors.New("mysqldump not found")
+			return "", pb.ResponseCode_SERVER_CONFIG_ERROR
 		}
 	}
 	file := sqlName("mysqldump")
 	_, err = utils.RunCmd(fmt.Sprintf("%s --all-databases > %s", mysqlDumpCmd, file))
 	if err != nil {
+
 		utils.LogError(err.Error())
+		return "", pb.ResponseCode_UNKNOWN_SERVER_ERROR
 	}
-	return file, err
+
+	return file, pb.ResponseCode_OK
 }
 
 func platformRestartMysqlDefault() (err error) {
