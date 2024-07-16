@@ -26,8 +26,8 @@ class Program
 //         caller.CallGetNetworkBindList(Protocol.All, "lo");
 //         caller.CallGetNetworkBindList(Protocol.All, "Loopback Pseudo-Interface 1");
 //         await caller.CallFileDownload("/etc/hosts", "D:/hosts.txt");
-         // caller.GetNginxInfo();
-         caller.MysqlDump();
+         caller.GetNginxInfo();
+         // caller.MysqlDump();
 
     }
 }

@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import  "response_code.proto";
+
 option go_package = "./agent_proto";
 
 package agent_proto;
@@ -15,7 +17,8 @@ message GetNginxInfoRequest {
 
 message GetNginxInfoResponse {
   string message = 1;
-  repeated NginxInstance nginxInstances = 2;
+  ResponseCode code = 2;
+  repeated NginxInstance nginxInstances = 3;
 }
 
 message NginxInstance{

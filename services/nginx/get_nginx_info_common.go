@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"github.com/tufanbarisyildirim/gonginx"
 	"github.com/tufanbarisyildirim/gonginx/parser"
+	"go-agent/agent_proto"
 	pb "go-agent/agent_proto"
 	"go-agent/agent_runtime"
-	utils "go-agent/utils"
+	"go-agent/utils"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -17,16 +18,20 @@ var defaultConfigFile, defaultErrorLog, defaultAccessLog string
 
 func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.GetNginxInfoResponse, error) {
 	utils.LogInfo("called NginxInfo")
+	response := pb.GetNginxInfoResponse{}
 	commandPath, _ := utils.FindCommandFromPathAndProcessByMatchStringArray([]string{"nginx"})
 	if commandPath == "" {
-		utils.LogError("can't find nginx")
-		return nil, nil
+		response.Message = "can't find nginx"
+		response.Code = agent_proto.ResponseCode_UNSUPPORTED
+		utils.LogError(response.Message)
+		return &response, nil
 	}
 	var res pb.GetNginxInfoResponse
 	var prefix string
 	nginxV, err := utils.RunCmd(commandPath + " -V")
 	if err != nil {
 		utils.LogError(err.Error())
+
 		return nil, nil
 	}
 
@@ -36,30 +41,38 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 		defaultConfigFile = matched[1]
 	} else {
 		//应该没可能到这
-		utils.LogError("can't find default config file")
-		return nil, nil
+		res.Message = "can't find default config file"
+		res.Code = agent_proto.ResponseCode_SERVER_CONFIG_ERROR
+		utils.LogError(res.Message)
+		return &res, nil
 	}
 	reC, _ = regexp.Compile(`--error-log-path=(\S+)`)
 	if matched := reC.FindStringSubmatch(nginxV); len(matched) > 1 {
 		defaultErrorLog = matched[1]
 	} else {
-		utils.LogError("can't find default error log")
-		return nil, nil
+		res.Message = "can't find default error log"
+		res.Code = agent_proto.ResponseCode_SERVER_CONFIG_ERROR
+		utils.LogError(res.Message)
+		return &res, nil
 	}
 
 	reC, _ = regexp.Compile(`--http-log-path=(\S+)`)
 	if matched := reC.FindStringSubmatch(nginxV); len(matched) > 1 {
 		defaultAccessLog = matched[1]
 	} else {
-		utils.LogError("can't find default access log")
-		return nil, nil
+		res.Message = "can't find default access log"
+		res.Code = agent_proto.ResponseCode_SERVER_CONFIG_ERROR
+		utils.LogError(res.Message)
+		return &res, nil
 	}
 	reC, _ = regexp.Compile(`--prefix=(\S+)`)
 	if matched := reC.FindStringSubmatch(nginxV); len(matched) > 1 {
 		prefix = matched[1]
 	} else {
-		utils.LogError("can't find default prefix")
-		return nil, nil
+		res.Message = "can't find default prefix"
+		res.Code = agent_proto.ResponseCode_SERVER_CONFIG_ERROR
+		utils.LogError(res.Message)
+		return &res, nil
 	}
 
 	//windows的默认config大概是相对路径

@@ -8,7 +8,8 @@ import (
 	"go-agent/services/apache"
 	"go-agent/services/file"
 	"go-agent/services/network"
-	"go-agent/services/nginx"
+	snginx "go-agent/services/nginx"
+
 	"go-agent/services/system"
 	"go-agent/utils"
 	"google.golang.org/grpc/reflection"
@@ -18,7 +19,6 @@ import (
 
 	pb "go-agent/agent_proto"
 	sdatabase "go-agent/services/database"
-
 	"google.golang.org/grpc"
 )
 
@@ -41,7 +41,7 @@ func main() {
 	pb.RegisterSystemServiceServer(s, &system.Server{})
 	pb.RegisterNetworkServiceServer(s, &network.Server{})
 	pb.RegisterFileServiceServer(s, &file.Server{})
-	pb.RegisterNginxServiceServer(s, &nginx.Server{})
+	pb.RegisterNginxServiceServer(s, &snginx.Server{})
 	database.RegisterDatabaseServiceServer(s, &sdatabase.Server{})
 
 	//grpcurl --plaintext localhost:50051 list
