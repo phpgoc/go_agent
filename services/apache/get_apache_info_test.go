@@ -108,6 +108,7 @@ func TestInsertApacheInstanceInLogAndOutLog(t *testing.T) {
 }
 
 func TestInsertApacheInstanceWithDeepInclude(t *testing.T) {
+
 	configFilePath, err := filepath.Abs("./test_data/double_include/apache.config")
 	if err != nil {
 		t.Fatalf("Failed to get absolute path of simple.config: %v", err)
@@ -116,7 +117,7 @@ func TestInsertApacheInstanceWithDeepInclude(t *testing.T) {
 
 	response := &pb.GetApacheInfoResponse{}
 
-	envMap := map[string]string{}
+	envMap := map[string]string{"TEST_ROOT": httpdRoot}
 	err = insertApacheInstance(configFilePath, httpdRoot, response, envMap)
 	require.True(t, 3 == len(response.ConfigFiles), "Expected 3 config files in the response")
 	require.True(t, reflect.DeepEqual([]string{"8081", "8082", "8083"}, response.Listens), "Expected listens to be [8081, 8082, 8083]")
