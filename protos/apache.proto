@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "response_code.proto";
+
 option go_package = "./agent_proto";
 
 package agent_proto;
@@ -15,15 +17,15 @@ message GetApacheInfoRequest {
 
 message GetApacheInfoResponse {
   string message = 1;
-  repeated string configFiles = 2;
-  string root = 3;
-  repeated string serverNames = 4;
-  repeated string listens = 5;
-  repeated ApacheVirtualHost virtualHosts = 6;
-  repeated ApacheLog errorLogs = 7;
-  repeated ApacheLog customLogs = 8;
+  ResponseCode code = 2;
+  repeated string configFiles = 3;
+  string root = 4;
+  repeated string serverNames = 5;
+  repeated string listens = 6;
+  repeated ApacheVirtualHost virtualHosts = 7;
+  repeated ApacheLog errorLogs = 8;
+  repeated ApacheLog customLogs = 9;
 }
-
 
 
 message ApacheVirtualHost {

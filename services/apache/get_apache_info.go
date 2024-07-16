@@ -22,9 +22,8 @@ func (s *Server) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*
 
 	apacheCmd, env := utils.FindCommandFromPathAndProcessByMatchStringArray([]string{"apache2", "httpd", "apache"})
 	if apacheCmd == "" {
-		response.Message = "can't find apache"
-		utils.LogError(response.Message)
-		return &response, err
+
+		return utils.SetResponseErrorAndLogMessageGeneric(&response, "can't find apache", pb.ResponseCode_UNSUPPORTED)
 	}
 
 	apacheV, err = utils.RunCmd(apacheCmd + " -V")
@@ -53,9 +52,7 @@ func (s *Server) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*
 	}
 	if httpDefaultRoot == "" || serverDefaultConfig == "" {
 		//如果能找到命令,不可能找不到这两个
-		response.Message = "can't find HTTPD_ROOT or SERVER_CONFIG_FILE"
-		utils.LogError(response.Message)
-		return &response, err
+		return utils.SetResponseErrorAndLogMessageGeneric(&response, "can't find HTTPD_ROOT or SERVER_CONFIG_FILE", pb.ResponseCode_UNKNOWN_SERVER_ERROR)
 	}
 	//获取环境变量里的值 得到一个map
 	var envMap = make(map[string]string)
@@ -77,7 +74,7 @@ func (s *Server) GetApacheInfo(_ context.Context, _ *pb.GetApacheInfoRequest) (*
 
 	KVMap := platformReadEnvFile(httpDefaultRoot, envMap)
 
-	if utils.IsAbsolutePath(apacheCmd) {
+	if utils.IsAbsolutePath(apacheCmd) && !utils.IsAbsolutePath(httpDefaultRoot) {
 		// 大概率是windows环境 httpDefaultRoot 不会有用,那个一定是linux用的
 		httpDefaultRoot = filepath.Dir(filepath.Dir(apacheCmd))
 	}
@@ -130,7 +127,7 @@ func insertApacheInstance(configFileName, httpdRoot string, response *pb.GetApac
 					virtualHostRegex := regexp.MustCompile(`<VirtualHost([^>]+)>`)
 					matched := virtualHostRegex.FindStringSubmatch(line)
 					if len(matched) < 2 {
-						utils.LogError("<VirtualHost format error")
+						utils.LogWarn("<VirtualHost format error")
 						return
 					}
 					re := regexp.MustCompile(`\S+`)
@@ -139,7 +136,7 @@ func insertApacheInstance(configFileName, httpdRoot string, response *pb.GetApac
 					thisVirtualHost.Listens = newMatched
 				} else if strings.HasPrefix(line, "</VirtualHost") {
 					if !inVirtualHost {
-						utils.LogError("/VirtualHost format error")
+						utils.LogWarn("/VirtualHost format error")
 						return
 					}
 					thisInstance.VirtualHosts = append(thisInstance.VirtualHosts, thisVirtualHost)
@@ -152,7 +149,7 @@ func insertApacheInstance(configFileName, httpdRoot string, response *pb.GetApac
 					re := regexp.MustCompile(`Include(?:Optional)?(?:\s+(\S+))+`)
 					matched := re.FindStringSubmatch(line)
 					if len(matched) < 2 {
-						utils.LogError("Include format error")
+						utils.LogWarn("Include format error")
 						//不致命
 						continue
 					}
