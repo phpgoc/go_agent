@@ -10,14 +10,15 @@ package agent_proto;
 * 0: OK
 * 2开头为警告(预留不一定使用)
 * 4开头为调用方错误
-* 5开头为服务端错误
+* 5开头为服务端错误,5开头的错误,如果遇到,基本都需要改代码
+* 如果发现某个5开头的代码其实是可以接受的,增加一个2开头的警告状态码
 */
 
 enum ResponseCode {
     OK = 0;
+    SERVER_CONFIG_ERROR = 201;
     PARAM_ERROR = 400;
     UNSUPPORTED = 401;
     SERVER_ERROR = 500;
-    SERVER_CONFIG_ERROR = 501;
-    UNKNOWN_SERVER_ERROR = 599;
+    UNKNOWN_SERVER_ERROR = 599; //代码作者不能理解的错误
 }

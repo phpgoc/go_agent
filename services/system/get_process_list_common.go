@@ -12,8 +12,10 @@ import (
 
 func (s *Server) GetProcessList(_ context.Context, req *pb.GetProcessListRequest) (*pb.GetProcessListResponse, error) {
 	processList, err := process.Processes()
+	response := pb.GetProcessListResponse{}
 	if err != nil {
-		return nil, err
+		//不可能
+		return utils.SetResponseErrorAndLogMessageGeneric(&response, err.Error(), pb.ResponseCode_UNKNOWN_SERVER_ERROR)
 	}
 
 	var res pb.GetProcessListResponse

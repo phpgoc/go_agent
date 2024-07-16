@@ -18,21 +18,16 @@ var defaultConfigFile, defaultErrorLog, defaultAccessLog string
 
 func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.GetNginxInfoResponse, error) {
 	utils.LogInfo("called NginxInfo")
-	response := pb.GetNginxInfoResponse{}
+	var response pb.GetNginxInfoResponse
+
 	commandPath, _ := utils.FindCommandFromPathAndProcessByMatchStringArray([]string{"nginx"})
 	if commandPath == "" {
-		response.Message = "can't find nginx"
-		response.Code = agent_proto.ResponseCode_UNSUPPORTED
-		utils.LogError(response.Message)
-		return &response, nil
+		return utils.SetResponseErrorAndLogMessageGeneric(&response, "can't find nginx", pb.ResponseCode_UNSUPPORTED)
 	}
-	var res pb.GetNginxInfoResponse
 	var prefix string
 	nginxV, err := utils.RunCmd(commandPath + " -V")
 	if err != nil {
-		utils.LogError(err.Error())
-
-		return nil, nil
+		return utils.SetResponseErrorAndLogMessageGeneric(&response, err.Error(), pb.ResponseCode_UNKNOWN_SERVER_ERROR)
 	}
 
 	var reC *regexp.Regexp
@@ -41,38 +36,26 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 		defaultConfigFile = matched[1]
 	} else {
 		//应该没可能到这
-		res.Message = "can't find default config file"
-		res.Code = agent_proto.ResponseCode_SERVER_CONFIG_ERROR
-		utils.LogError(res.Message)
-		return &res, nil
+		return utils.SetResponseErrorAndLogMessageGeneric(&response, "can't find default config file", agent_proto.ResponseCode_UNKNOWN_SERVER_ERROR)
 	}
 	reC, _ = regexp.Compile(`--error-log-path=(\S+)`)
 	if matched := reC.FindStringSubmatch(nginxV); len(matched) > 1 {
 		defaultErrorLog = matched[1]
 	} else {
-		res.Message = "can't find default error log"
-		res.Code = agent_proto.ResponseCode_SERVER_CONFIG_ERROR
-		utils.LogError(res.Message)
-		return &res, nil
+		return utils.SetResponseErrorAndLogMessageGeneric(&response, "can't find default error log", agent_proto.ResponseCode_SERVER_CONFIG_ERROR)
 	}
 
 	reC, _ = regexp.Compile(`--http-log-path=(\S+)`)
 	if matched := reC.FindStringSubmatch(nginxV); len(matched) > 1 {
 		defaultAccessLog = matched[1]
 	} else {
-		res.Message = "can't find default access log"
-		res.Code = agent_proto.ResponseCode_SERVER_CONFIG_ERROR
-		utils.LogError(res.Message)
-		return &res, nil
+		return utils.SetResponseErrorAndLogMessageGeneric(&response, "can't find default access log", agent_proto.ResponseCode_SERVER_CONFIG_ERROR)
 	}
 	reC, _ = regexp.Compile(`--prefix=(\S+)`)
 	if matched := reC.FindStringSubmatch(nginxV); len(matched) > 1 {
 		prefix = matched[1]
 	} else {
-		res.Message = "can't find default prefix"
-		res.Code = agent_proto.ResponseCode_SERVER_CONFIG_ERROR
-		utils.LogError(res.Message)
-		return &res, nil
+		return utils.SetResponseErrorAndLogMessageGeneric(&response, "can't find default prefix", agent_proto.ResponseCode_SERVER_CONFIG_ERROR)
 	}
 
 	//windows的默认config大概是相对路径
@@ -83,7 +66,7 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 		defaultErrorLog = filepath.Join(commandPathDir, defaultErrorLog)
 		defaultAccessLog = filepath.Join(commandPathDir, defaultAccessLog)
 	}
-	insertNginxInfo(defaultConfigFile, prefix, &res)
+	insertNginxInfo(defaultConfigFile, prefix, &response)
 
 	//不指定config的情况上边已经处理了
 	reC, _ = regexp.Compile(`-c\s+(\S+)`)
@@ -115,21 +98,21 @@ func (*Server) GetNginxInfo(_ context.Context, _ *pb.GetNginxInfoRequest) (*pb.G
 				if matchedPrefix := rePrefix.FindStringSubmatch(cmd); len(matchedPrefix) > 1 {
 
 					if utils.IsAbsolutePath(matchedPrefix[1]) {
-						insertNginxInfo(thisConfigFile, matchedPrefix[1], &res)
+						insertNginxInfo(thisConfigFile, matchedPrefix[1], &response)
 					} else {
-						insertNginxInfo(thisConfigFile, filepath.Join(processRunCmdDIr, matchedPrefix[1]), &res)
+						insertNginxInfo(thisConfigFile, filepath.Join(processRunCmdDIr, matchedPrefix[1]), &response)
 					}
 				} else {
 					//没匹配到-p说明用编译时的prefix
-					insertNginxInfo(thisConfigFile, prefix, &res)
+					insertNginxInfo(thisConfigFile, prefix, &response)
 				}
 
 			}
 		}
 
 	}
-	utils.LogInfo(fmt.Sprintf("NginxInfo res:%s", InfoResponseWrapper{&res}))
-	return &res, nil
+	utils.LogInfo(fmt.Sprintf("NginxInfo response:%s", InfoResponseWrapper{&response}))
+	return &response, nil
 }
 
 func insertNginxInfo(configFile string, processPrefix string, res *pb.GetNginxInfoResponse) {

@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import  "response_code.proto";
+
 option go_package = "./agent_proto";
 
 package agent_proto;
@@ -18,20 +20,22 @@ message GetSysInfoRequest {
 
 message GetSysInfoResponse {
   string message = 1;
-  PlatformModel platform = 2;
-  CpuModel cpuModel = 3;
-  string timezone = 4;
-  string kernelVersion = 5;
-  string os = 6;
-  string arch = 7;
-  string hostname = 8;
-  string uptime = 9;
-  string bootTime = 10;
-  LoadAverage loadAverage = 11;
-  MemoryStat virtualMemory = 12;
-  MemoryStat swapMemory = 13;
-  repeated Disk disks = 14;
+  ResponseCode code = 2;
+  PlatformModel platform = 3;
+  CpuModel cpuModel = 4;
+  string timezone = 5;
+  string kernelVersion = 6;
+  string os = 7;
+  string arch = 8;
+  string hostname = 9;
+  string uptime = 10;
+  string bootTime = 11;
+  LoadAverage loadAverage = 12;
+  MemoryStat virtualMemory = 13;
+  MemoryStat swapMemory = 14;
+  repeated Disk disks = 15;
 }
+
 message PlatformModel{
   string platform = 1;
   string family = 2;
@@ -63,7 +67,8 @@ message UserListRequest {
 
 message UserListResponse {
   string message = 1;
-  repeated UserInfo list = 2;
+  ResponseCode code = 2;
+  repeated UserInfo list = 3;
 }
 
 
@@ -100,8 +105,10 @@ message GetShellHistoryRequest {
 
 message GetShellHistoryResponse {
   string message = 1;
-  repeated UserHistory listByUserName = 2;
+  ResponseCode code = 2;
+  repeated UserHistory listByUserName = 3;
 }
+
 
 message UserHistory{
   string userName = 1;
@@ -119,7 +126,8 @@ message GetProcessListRequest {
 
 message GetProcessListResponse {
   string message = 1;
-  repeated ProcessInfo list = 2;
+  ResponseCode code = 2;
+  repeated ProcessInfo list = 3;
 }
 
 message ProcessInfo{

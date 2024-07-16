@@ -15,10 +15,10 @@ import (
 	"time"
 )
 
-func writeLogFile(level string, log string) {
+func writeLogFile(level string, log string, callerLevel int) {
 	// log to file
 	// write now
-	_, filename, line, _ := runtime.Caller(2)
+	_, filename, line, _ := runtime.Caller(callerLevel)
 	_, err := writer.WriteString(fmt.Sprintf("%s, %s\tfile:///%s:%d\t %s\n", level,
 		time.Now().Format("2006-01-02 15:04:05"),
 		filename, line,
@@ -30,15 +30,19 @@ func writeLogFile(level string, log string) {
 
 // 如何接受变长
 func LogInfo(log string) {
-	writeLogFile("INFO", log)
+	writeLogFile("INFO", log, 2)
 }
 
 func LogWarn(log string) {
-	writeLogFile("WARN", log)
+	writeLogFile("WARN", log, 2)
 }
 
 func LogError(log string) {
-	writeLogFile("ERROR", log)
+	writeLogFile("ERROR", log, 2)
+}
+
+func LogErrorWithCallerLevel(log string, callerLevel int) {
+	writeLogFile("ERROR", log, callerLevel)
 }
 
 // GetFirstAndLogError 有错误打印日志并拿默认值继续
@@ -49,7 +53,7 @@ func GetFirstAndLogError[T any](fn func() (T, error), defaultValue ...T) T {
 	if err != nil {
 		//LogError(err.Error())
 		//这里不能使用LogError，因为caller等级不同
-		writeLogFile("ERROR", err.Error())
+		LogErrorWithCallerLevel(err.Error(), 3)
 	}
 	if len(defaultValue) > 0 {
 		return defaultValue[0]
