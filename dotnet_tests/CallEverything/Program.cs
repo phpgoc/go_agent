@@ -12,8 +12,7 @@ class Program
          GrpcCaller caller = new GrpcCaller("http://localhost:50051");
 //        GrpcCaller caller = new GrpcCaller("http://172.17.0.1:50051");
 // GrpcCaller caller = new GrpcCaller("http://192.168.31.244:50051");
-        
-         // caller.CallHelloWorld();
+
           // caller.CallGetApacheInfo();
          // caller.CallGetSysInfo();
          // caller.CallGetProcessList(true);

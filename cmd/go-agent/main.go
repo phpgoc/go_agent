@@ -7,7 +7,6 @@ import (
 	"go-agent/agent_runtime"
 	"go-agent/services/apache"
 	"go-agent/services/file"
-	"go-agent/services/helloworld"
 	"go-agent/services/network"
 	"go-agent/services/nginx"
 	"go-agent/services/system"
@@ -38,7 +37,6 @@ func main() {
 		return
 	}
 	s := grpc.NewServer()
-	pb.RegisterGreeterServer(s, &helloworld.Server{})
 	pb.RegisterApacheServiceServer(s, &apache.Server{})
 	pb.RegisterSystemServiceServer(s, &system.Server{})
 	pb.RegisterNetworkServiceServer(s, &network.Server{})

@@ -29,12 +29,6 @@ public class GrpcCaller
         Console.WriteLine(JsonConvert.SerializeObject(obj, _jsonBeautifierSetting));
     }
 
-    public void CallHelloWorld()
-    {
-        Console.WriteLine("call helloworld");
-        string greetResult = _callGrpcLib.Echo("Alice");
-        PrintJson(greetResult);
-    }
 
     public void CallGetApacheInfo()
     {

@@ -16,13 +16,7 @@ namespace GrpcLib
             this.channel = channel;
         }
 
-        public string Echo(string name)
-        {
-            var client = new Greeter.GreeterClient(channel);
-            var reply = client.SayHello(new HelloRequest { Name = name });
-            return reply.Message;
-        }
-        
+
         public GetApacheInfoResponse GetApacheInfo()
         {
             var client = new ApacheService.ApacheServiceClient(channel);
