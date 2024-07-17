@@ -15,8 +15,8 @@ import (
 	"time"
 )
 
+// LogInfo log info callerLevel 为了记录真正调用者的位置
 func writeLogFile(level string, log string, callerLevel int) {
-	// log to file
 	// write now
 	_, filename, line, _ := runtime.Caller(callerLevel)
 	_, err := writer.WriteString(fmt.Sprintf("%s, %s\tfile:///%s:%d\t %s\n", level,
@@ -28,7 +28,6 @@ func writeLogFile(level string, log string, callerLevel int) {
 	}
 }
 
-// 如何接受变长
 func LogInfo(log string) {
 	writeLogFile("INFO", log, 2)
 }
@@ -319,14 +318,6 @@ func FileExists(path string) bool {
 	}
 	return !fs.IsDir()
 }
-
-//func DirExists(path string) bool {
-//	fs, err := os.Stat(path)
-//	if err != nil {
-//		return false
-//	}
-//	return fs.IsDir()
-//}
 
 func DeepCopyMapGeneric[K comparable, V any](originalMap map[K]V) map[K]V {
 	newMap := make(map[K]V)
