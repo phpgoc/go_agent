@@ -12,9 +12,9 @@ import (
 func (s *Server) GetNetworkInterface(_ context.Context, _ *pb.GetNetworkInterfaceRequest) (*pb.GetNetworkInterfaceResponse, error) {
 	utils.LogInfo("called GetNetworkInterface")
 	res, err := innerGetNetworkInterface()
+
 	if err != nil {
-		res.Message = err.Error()
-		return res, err
+		return utils.SetResponseErrorAndLogMessageGeneric(res, err.Error(), pb.ResponseCode_UNKNOWN_SERVER_ERROR)
 	}
 	utils.LogInfo(fmt.Sprintf("get network interface len: %d", len(res.NetworkInterfaces)))
 	return res, nil

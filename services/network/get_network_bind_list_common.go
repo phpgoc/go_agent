@@ -15,28 +15,22 @@ func (s *Server) GetNetworkBindList(_ context.Context, req *pb.GetNetworkBindLis
 	utils.LogInfo(fmt.Sprintf("called GetNetworkBindList: %v", req))
 	res := &pb.GetNetworkBindListResponse{}
 	var bindList []net.ConnectionStat = nil
-	var err error
 	switch req.Protocol {
 	case pb.Protocol_ALL:
-		bindList, err = net.Connections("all")
+		bindList, _ = net.Connections("all")
 	case pb.Protocol_TCP:
-		bindList, err = net.Connections("tcp")
+		bindList, _ = net.Connections("tcp")
 	case pb.Protocol_UDP:
-		bindList, err = net.Connections("udp")
+		bindList, _ = net.Connections("udp")
 	}
 
-	if err != nil {
-		utils.LogError(err.Error())
-		res.Message = err.Error()
-		return res, err
-	}
 	var ethIps []string
 
 	if req.InterfaceName != "" {
 		interfaces, err := innerGetNetworkInterface()
+
 		if err != nil {
-			res.Message = err.Error()
-			return res, err
+			return utils.SetResponseErrorAndLogMessageGeneric(res, err.Error(), pb.ResponseCode_UNKNOWN_SERVER_ERROR)
 		}
 		for _, i := range interfaces.NetworkInterfaces {
 			if i.Name != req.InterfaceName {
@@ -51,10 +45,7 @@ func (s *Server) GetNetworkBindList(_ context.Context, req *pb.GetNetworkBindLis
 			}
 		}
 		if len(ethIps) == 0 {
-			res.Message = "no such interface"
-			utils.LogWarn(res.Message)
-			return res, nil
-
+			return utils.SetResponseErrorAndLogMessageGeneric(res, fmt.Sprintf("Interface %s not found", req.InterfaceName), pb.ResponseCode_UNSUPPORTED)
 		}
 	}
 

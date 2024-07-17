@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "response_code.proto";
+
 option go_package="./agent_proto";
 package agent_proto;
 
@@ -14,7 +16,8 @@ message  GetNetworkInterfaceRequest{
 
 message  GetNetworkInterfaceResponse{
     string message = 1;
-    repeated NetworkInterface network_interfaces = 2;
+    ResponseCode code = 2;
+    repeated NetworkInterface network_interfaces = 3;
 }
 
 message NetworkInterface{
@@ -30,7 +33,8 @@ message GetAllNetworkConnectRequest{
 
 message GetAllNetworkConnectResponse{
     string message = 1;
-    repeated NetworkConnect network_connects = 2;
+    ResponseCode code = 2;
+    repeated NetworkConnect network_connects = 3;
 }
 
 message NetworkConnect{
@@ -61,7 +65,8 @@ enum Protocol{
 
 message GetNetworkBindListResponse{
     string message = 1;
-    repeated NetworkBind network_binds = 2;
+    ResponseCode code = 2;
+    repeated NetworkBind network_binds = 3;
 }
 
 message NetworkBind{

@@ -13,9 +13,9 @@ func (s *Server) GetAllNetworkConnect(_ context.Context, _ *pb.GetAllNetworkConn
 	utils.LogInfo("called GetAllNetworkConnect")
 	res := &pb.GetAllNetworkConnectResponse{}
 	connects, err := net.Connections("all")
+
 	if err != nil {
-		utils.LogError(err.Error())
-		return nil, err
+		return utils.SetResponseErrorAndLogMessageGeneric(res, err.Error(), pb.ResponseCode_UNKNOWN_SERVER_ERROR)
 	}
 	connectNumForLog := 0
 
