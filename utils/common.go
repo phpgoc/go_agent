@@ -40,11 +40,28 @@ func LogError(log string) {
 	writeLogFile("ERROR", log, 2)
 }
 
-func LogErrorThrough(err *error) error {
-	if *err != nil {
-		LogErrorWithCallerLevel((*err).Error(), 3)
+func LogErrorThrough(err interface{}) error {
+	var actualErr error
+
+	switch e := err.(type) {
+	case error:
+		// If it's an error, use it directly.
+		actualErr = e
+	case *error:
+		// If it's a pointer to an error, dereference it.
+		if e != nil {
+			actualErr = *e
+		}
+	default:
+		// If it's neither, perhaps return nil or handle differently.
+		return nil
 	}
-	return *err
+
+	if actualErr != nil {
+		LogErrorWithCallerLevel(actualErr.Error(), 3)
+	}
+
+	return actualErr
 }
 
 func LogErrorWithCallerLevel(log string, callerLevel int) {
@@ -325,4 +342,9 @@ func DeepCopyMapGeneric[K comparable, V any](originalMap map[K]V) map[K]V {
 		newMap[key] = value
 	}
 	return newMap
+}
+
+func SplitFields(s string) []string {
+	reSpin := regexp.MustCompile(`\s+`)
+	return reSpin.Split(s, -1)
 }

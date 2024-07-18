@@ -58,6 +58,13 @@ namespace GrpcLib
             return reply;
         }
         
+        public GetSystemServicesResponse GetSystemServices()
+        {
+            var client = new SystemService.SystemServiceClient(channel);
+            var reply = client.GetSystemServices(new GetSystemServicesRequest { });
+            return reply;
+        }
+        
         public GetNetworkInterfaceResponse GetNetworkInterface()
         {
             var client = new NetworkService.NetworkServiceClient(channel);

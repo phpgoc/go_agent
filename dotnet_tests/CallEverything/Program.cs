@@ -19,9 +19,10 @@ class Program
 //         caller.CallGetUserList();
 //         caller.CallGetShellHistory("yangdianqing");
 //         caller.CallGetShellHistory("");
-         caller.CallGetNetworkInterface();
-         caller.CallGetAllNetworkConnect();
-         caller.CallGetNetworkBindList(Protocol.All, "");
+        caller.CallGetSystemServices();
+         // caller.CallGetNetworkInterface();
+         // caller.CallGetAllNetworkConnect();
+         // caller.CallGetNetworkBindList(Protocol.All, "");
 //         caller.CallGetNetworkBindList(Protocol.Tcp, "");
 //         caller.CallGetNetworkBindList(Protocol.All, "lo");
 //         caller.CallGetNetworkBindList(Protocol.All, "Loopback Pseudo-Interface 1");

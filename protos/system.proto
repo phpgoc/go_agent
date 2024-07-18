@@ -12,6 +12,7 @@ service SystemService {
   rpc GetUserList (UserListRequest) returns (UserListResponse) {}
   rpc GetShellHistory (GetShellHistoryRequest) returns (GetShellHistoryResponse) {}
   rpc GetProcessList (GetProcessListRequest) returns (GetProcessListResponse) {}
+  rpc GetSystemServices (GetSystemServicesRequest) returns (GetSystemServicesResponse) {}
 }
 
 message GetSysInfoRequest {
@@ -163,4 +164,20 @@ message ThreadTimesStat {
   double ioWait = 7;
   double irq = 8;
   double softIrq = 9;
+}
+
+message GetSystemServicesRequest {
+
+}
+
+message GetSystemServicesResponse {
+  string message = 1;
+  ResponseCode code = 2;
+  repeated SystemServiceInfo list = 3;
+}
+
+message SystemServiceInfo{
+  string name = 1;
+  string state = 2;
+  string description = 3;
 }

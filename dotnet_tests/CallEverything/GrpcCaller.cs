@@ -64,6 +64,12 @@ public class GrpcCaller
         PrintJson(processList);
     }
     
+    public void CallGetSystemServices()
+    {
+        Console.WriteLine("call getSystemServices");
+        GetSystemServicesResponse systemServices = _callGrpcLib.GetSystemServices();
+        PrintJson(systemServices);
+    }
     
     public void CallGetNetworkInterface()
     {

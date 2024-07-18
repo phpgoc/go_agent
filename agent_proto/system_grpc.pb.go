@@ -19,10 +19,11 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	SystemService_GetSysInfo_FullMethodName      = "/agent_proto.SystemService/GetSysInfo"
-	SystemService_GetUserList_FullMethodName     = "/agent_proto.SystemService/GetUserList"
-	SystemService_GetShellHistory_FullMethodName = "/agent_proto.SystemService/GetShellHistory"
-	SystemService_GetProcessList_FullMethodName  = "/agent_proto.SystemService/GetProcessList"
+	SystemService_GetSysInfo_FullMethodName        = "/agent_proto.SystemService/GetSysInfo"
+	SystemService_GetUserList_FullMethodName       = "/agent_proto.SystemService/GetUserList"
+	SystemService_GetShellHistory_FullMethodName   = "/agent_proto.SystemService/GetShellHistory"
+	SystemService_GetProcessList_FullMethodName    = "/agent_proto.SystemService/GetProcessList"
+	SystemService_GetSystemServices_FullMethodName = "/agent_proto.SystemService/GetSystemServices"
 )
 
 // SystemServiceClient is the client API for SystemService service.
@@ -33,6 +34,7 @@ type SystemServiceClient interface {
 	GetUserList(ctx context.Context, in *UserListRequest, opts ...grpc.CallOption) (*UserListResponse, error)
 	GetShellHistory(ctx context.Context, in *GetShellHistoryRequest, opts ...grpc.CallOption) (*GetShellHistoryResponse, error)
 	GetProcessList(ctx context.Context, in *GetProcessListRequest, opts ...grpc.CallOption) (*GetProcessListResponse, error)
+	GetSystemServices(ctx context.Context, in *GetSystemServicesRequest, opts ...grpc.CallOption) (*GetSystemServicesResponse, error)
 }
 
 type systemServiceClient struct {
@@ -83,6 +85,16 @@ func (c *systemServiceClient) GetProcessList(ctx context.Context, in *GetProcess
 	return out, nil
 }
 
+func (c *systemServiceClient) GetSystemServices(ctx context.Context, in *GetSystemServicesRequest, opts ...grpc.CallOption) (*GetSystemServicesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSystemServicesResponse)
+	err := c.cc.Invoke(ctx, SystemService_GetSystemServices_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SystemServiceServer is the server API for SystemService service.
 // All implementations must embed UnimplementedSystemServiceServer
 // for forward compatibility
@@ -91,6 +103,7 @@ type SystemServiceServer interface {
 	GetUserList(context.Context, *UserListRequest) (*UserListResponse, error)
 	GetShellHistory(context.Context, *GetShellHistoryRequest) (*GetShellHistoryResponse, error)
 	GetProcessList(context.Context, *GetProcessListRequest) (*GetProcessListResponse, error)
+	GetSystemServices(context.Context, *GetSystemServicesRequest) (*GetSystemServicesResponse, error)
 	mustEmbedUnimplementedSystemServiceServer()
 }
 
@@ -109,6 +122,9 @@ func (UnimplementedSystemServiceServer) GetShellHistory(context.Context, *GetShe
 }
 func (UnimplementedSystemServiceServer) GetProcessList(context.Context, *GetProcessListRequest) (*GetProcessListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProcessList not implemented")
+}
+func (UnimplementedSystemServiceServer) GetSystemServices(context.Context, *GetSystemServicesRequest) (*GetSystemServicesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSystemServices not implemented")
 }
 func (UnimplementedSystemServiceServer) mustEmbedUnimplementedSystemServiceServer() {}
 
@@ -195,6 +211,24 @@ func _SystemService_GetProcessList_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SystemService_GetSystemServices_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSystemServicesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemServiceServer).GetSystemServices(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: SystemService_GetSystemServices_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemServiceServer).GetSystemServices(ctx, req.(*GetSystemServicesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SystemService_ServiceDesc is the grpc.ServiceDesc for SystemService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -217,6 +251,10 @@ var SystemService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetProcessList",
 			Handler:    _SystemService_GetProcessList_Handler,
+		},
+		{
+			MethodName: "GetSystemServices",
+			Handler:    _SystemService_GetSystemServices_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
