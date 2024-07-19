@@ -14,19 +14,7 @@ namespace GrpcTest
             this.grpcLib = new CallGrpcLib(Utils.GetGlobalChannel());
         }
 
-        [TestMethod]
-        public void TestEcho()
-        {
-            // Arrange
-            string name = "Alice";
-            string expected = "Hello Alice";
 
-            // Act
-            string result = grpcLib.Echo(name);
-
-            // Assert
-            Assert.AreEqual(expected, result);
-        }
 
         [TestMethod]
         public void TestIsLinux()

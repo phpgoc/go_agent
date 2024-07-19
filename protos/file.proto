@@ -6,6 +6,7 @@ package agent_proto;
 
 service FileService {
     rpc DownloadFile(DownloadFileRequest) returns (stream DownloadFileResponse) {}
+    rpc DiskMirror(DiskMirrorRequest) returns (stream DiskMirrorResponse) {}
 }
 
 message DownloadFileRequest {
@@ -13,5 +14,13 @@ message DownloadFileRequest {
 }
 
 message DownloadFileResponse {
+    bytes chunk = 1;
+}
+
+message DiskMirrorRequest {
+    string device = 1;
+}
+
+message DiskMirrorResponse {
     bytes chunk = 1;
 }

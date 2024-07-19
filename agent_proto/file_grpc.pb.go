@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion8
 
 const (
 	FileService_DownloadFile_FullMethodName = "/agent_proto.FileService/DownloadFile"
+	FileService_DiskMirror_FullMethodName   = "/agent_proto.FileService/DiskMirror"
 )
 
 // FileServiceClient is the client API for FileService service.
@@ -27,6 +28,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FileServiceClient interface {
 	DownloadFile(ctx context.Context, in *DownloadFileRequest, opts ...grpc.CallOption) (FileService_DownloadFileClient, error)
+	DiskMirror(ctx context.Context, in *DiskMirrorRequest, opts ...grpc.CallOption) (FileService_DiskMirrorClient, error)
 }
 
 type fileServiceClient struct {
@@ -70,11 +72,45 @@ func (x *fileServiceDownloadFileClient) Recv() (*DownloadFileResponse, error) {
 	return m, nil
 }
 
+func (c *fileServiceClient) DiskMirror(ctx context.Context, in *DiskMirrorRequest, opts ...grpc.CallOption) (FileService_DiskMirrorClient, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &FileService_ServiceDesc.Streams[1], FileService_DiskMirror_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &fileServiceDiskMirrorClient{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type FileService_DiskMirrorClient interface {
+	Recv() (*DiskMirrorResponse, error)
+	grpc.ClientStream
+}
+
+type fileServiceDiskMirrorClient struct {
+	grpc.ClientStream
+}
+
+func (x *fileServiceDiskMirrorClient) Recv() (*DiskMirrorResponse, error) {
+	m := new(DiskMirrorResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // FileServiceServer is the server API for FileService service.
 // All implementations must embed UnimplementedFileServiceServer
 // for forward compatibility
 type FileServiceServer interface {
 	DownloadFile(*DownloadFileRequest, FileService_DownloadFileServer) error
+	DiskMirror(*DiskMirrorRequest, FileService_DiskMirrorServer) error
 	mustEmbedUnimplementedFileServiceServer()
 }
 
@@ -84,6 +120,9 @@ type UnimplementedFileServiceServer struct {
 
 func (UnimplementedFileServiceServer) DownloadFile(*DownloadFileRequest, FileService_DownloadFileServer) error {
 	return status.Errorf(codes.Unimplemented, "method DownloadFile not implemented")
+}
+func (UnimplementedFileServiceServer) DiskMirror(*DiskMirrorRequest, FileService_DiskMirrorServer) error {
+	return status.Errorf(codes.Unimplemented, "method DiskMirror not implemented")
 }
 func (UnimplementedFileServiceServer) mustEmbedUnimplementedFileServiceServer() {}
 
@@ -119,6 +158,27 @@ func (x *fileServiceDownloadFileServer) Send(m *DownloadFileResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
+func _FileService_DiskMirror_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DiskMirrorRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(FileServiceServer).DiskMirror(m, &fileServiceDiskMirrorServer{ServerStream: stream})
+}
+
+type FileService_DiskMirrorServer interface {
+	Send(*DiskMirrorResponse) error
+	grpc.ServerStream
+}
+
+type fileServiceDiskMirrorServer struct {
+	grpc.ServerStream
+}
+
+func (x *fileServiceDiskMirrorServer) Send(m *DiskMirrorResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // FileService_ServiceDesc is the grpc.ServiceDesc for FileService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -130,6 +190,11 @@ var FileService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "DownloadFile",
 			Handler:       _FileService_DownloadFile_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "DiskMirror",
+			Handler:       _FileService_DiskMirror_Handler,
 			ServerStreams: true,
 		},
 	},

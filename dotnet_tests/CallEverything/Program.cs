@@ -19,14 +19,16 @@ class Program
 //         caller.CallGetUserList();
 //         caller.CallGetShellHistory("yangdianqing");
 //         caller.CallGetShellHistory("");
-        caller.CallGetSystemServices();
+        // caller.CallGetSystemServices();
          // caller.CallGetNetworkInterface();
          // caller.CallGetAllNetworkConnect();
          // caller.CallGetNetworkBindList(Protocol.All, "");
-//         caller.CallGetNetworkBindList(Protocol.Tcp, "");
-//         caller.CallGetNetworkBindList(Protocol.All, "lo");
+         // caller.CallGetNetworkBindList(Protocol.Tcp, "");
+         // caller.CallGetNetworkBindList(Protocol.All, "lo");
 //         caller.CallGetNetworkBindList(Protocol.All, "Loopback Pseudo-Interface 1");
 //         await caller.CallFileDownload("/etc/hosts", "D:/hosts.txt");
+       await caller.CallDiskMIrror("/dev/sdc","D:/sdc.img");
+
          // caller.GetNginxInfo();
          // caller.MysqlDump();
 

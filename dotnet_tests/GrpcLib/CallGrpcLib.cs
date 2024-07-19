@@ -123,6 +123,41 @@ namespace GrpcLib
              }
         }
          
+         public async Task  DiskMirror(string device , string local)
+         {
+
+             try
+             {
+                 //异常视乎只发生在write时，先创建stream，再写一个一个字符，如果正常再重新创建
+                 // Get the directory part of the local path
+                 string? directory = Path.GetDirectoryName(local);
+                 
+
+                 // Check if the directory exists
+                 if (directory == null ||  !Directory.Exists(directory))
+                 {
+                     Console.WriteLine($"The directory {directory} does not exist.");
+                     return;
+                 }
+                 
+                 await using FileStream writeStream = File.Create(local);
+                 var client = new FileService.FileServiceClient(channel);
+                 using var call = client.DiskMirror(new DiskMirrorRequest { Device = device });
+                 await foreach (var res in call.ResponseStream.ReadAllAsync())
+                 {
+                     if (res.Chunk != null)
+                     {
+                         await writeStream.WriteAsync(res.Chunk.Memory);
+                     }
+                 }
+
+                 writeStream.Close();
+             }
+             catch (Exception e)
+             {
+                 Console.WriteLine($"An error occurred: {e.Message}");
+             }
+         }
         public GetNginxInfoResponse GetNginxInfo()
         {
             var client = new NginxService.NginxServiceClient(channel);

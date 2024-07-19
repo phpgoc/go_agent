@@ -98,6 +98,11 @@ public class GrpcCaller
         Console.WriteLine("call fileDownload");
         await _callGrpcLib.FileDownload(remote, local);
     }
+    public async Task CallDiskMIrror(string device, string local)
+    {
+        Console.WriteLine("call fileDownload");
+        await _callGrpcLib.FileDownload(device, local);
+    }
     
     public void GetNginxInfo()
     {
